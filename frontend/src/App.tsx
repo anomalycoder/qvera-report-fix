@@ -1,74 +1,92 @@
-import React, { useState, useEffect } from 'react'
-import { FacultyLayout, type FacultyNavTab } from '@/layouts/FacultyLayout'
-import { FacultyOverviewPage } from '@/pages/FacultyOverviewPage'
-import { FacultyQueuePage } from '@/pages/FacultyQueuePage'
-import { FacultyWorkspacePage } from '@/pages/FacultyWorkspacePage'
-import { FacultyAnalyticsPage } from '@/pages/FacultyAnalyticsPage'
-import { FacultySettingsPage } from '@/pages/FacultySettingsPage'
-import { AuditLedgerPage } from '@/pages/AuditLedgerPage'
-import { DashboardPage } from '@/pages/DashboardPage'
+import React, { useState, useEffect } from "react"
+import { AppLayout, type NavTab } from "@/layouts/AppLayout"
+import { OverviewPage } from "@/pages/OverviewPage"
+import { ReviewQueuePage } from "@/pages/ReviewQueuePage"
+import { QuestionsPage } from "@/pages/QuestionsPage"
+import { ActivityPage } from "@/pages/ActivityPage"
+import { ReviewWorkspacePage } from "@/pages/ReviewWorkspacePage"
+import { Toaster } from "sonner"
 
 export default function App() {
-  const [currentTab, setCurrentTab] = useState<FacultyNavTab>('overview')
-  const [selectedReportId, setSelectedReportId] = useState<string>('R001')
+  const [currentTab, setCurrentTab] = useState<NavTab>("overview")
+  const [activeReportId, setActiveReportId] = useState<string>("R001")
   const [pendingCount, setPendingCount] = useState<number>(10)
+  const [globalSearch, setGlobalSearch] = useState<string>("")
 
   // Fetch live overview statistics to populate notifications and badge counter
-  useEffect(() => {
-    fetch('/api/v1/faculty/overview')
+  const refreshPendingCount = () => {
+    fetch("/api/v1/faculty/overview")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
-        if (data && typeof data.pending_faculty_reviews === 'number') {
+        if (data && typeof data.pending_faculty_reviews === "number") {
           setPendingCount(data.pending_faculty_reviews)
         }
       })
       .catch(() => {})
+  }
+
+  useEffect(() => {
+    refreshPendingCount()
   }, [currentTab])
 
   const handleSelectReport = (reportId: string) => {
-    setSelectedReportId(reportId)
-    setCurrentTab('workspace')
+    setActiveReportId(reportId)
+    setCurrentTab("workspace")
   }
 
   return (
-    <FacultyLayout
-      currentTab={currentTab}
-      onTabChange={setCurrentTab}
-      pendingReviewsCount={pendingCount}
-    >
-      {currentTab === 'overview' && (
-        <FacultyOverviewPage
-          onNavigateToWorkspace={handleSelectReport}
-          onNavigateToQueue={() => setCurrentTab('queue')}
-        />
-      )}
+    <>
+      <AppLayout
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        pendingCount={pendingCount}
+        activeReportId={activeReportId}
+        onSearchChange={setGlobalSearch}
+        searchValue={globalSearch}
+      >
+        {currentTab === "overview" && (
+          <OverviewPage
+            onNavigateToWorkspace={handleSelectReport}
+            onNavigateToQueue={() => setCurrentTab("queue")}
+          />
+        )}
 
-      {currentTab === 'queue' && (
-        <FacultyQueuePage onSelectReport={handleSelectReport} />
-      )}
+        {currentTab === "queue" && (
+          <ReviewQueuePage
+            onSelectReport={handleSelectReport}
+            initialSearch={globalSearch}
+          />
+        )}
 
-      {currentTab === 'workspace' && (
-        <FacultyWorkspacePage
-          reportId={selectedReportId}
-          onBackToQueue={() => setCurrentTab('queue')}
-        />
-      )}
+        {currentTab === "questions" && (
+          <QuestionsPage
+            onInspectQuestionReports={handleSelectReport}
+          />
+        )}
 
-      {currentTab === 'auto_applied' && (
-        <FacultyQueuePage onSelectReport={handleSelectReport} />
-      )}
+        {currentTab === "activity" && <ActivityPage />}
 
-      {currentTab === 'reports' && (
-        <FacultyQueuePage onSelectReport={handleSelectReport} />
-      )}
+        {currentTab === "workspace" && (
+          <ReviewWorkspacePage
+            reportId={activeReportId}
+            onBackToQueue={() => setCurrentTab("queue")}
+          />
+        )}
+      </AppLayout>
 
-      {currentTab === 'questions' && <DashboardPage />}
-
-      {currentTab === 'audit' && <AuditLedgerPage />}
-
-      {currentTab === 'analytics' && <FacultyAnalyticsPage />}
-
-      {currentTab === 'settings' && <FacultySettingsPage />}
-    </FacultyLayout>
+      {/* Modern, restrained toast notifications */}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          style: {
+            background: "#ffffff",
+            color: "#0f172a",
+            border: "1px solid #e2e8f0",
+            fontSize: "12px",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+          },
+        }}
+      />
+    </>
   )
 }
