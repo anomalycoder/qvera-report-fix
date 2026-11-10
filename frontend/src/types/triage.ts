@@ -1,0 +1,17 @@
+export interface ProposedEdit {
+  field: 'question' | 'solution' | 'answer' | 'questionType' | string
+  find?: any
+  replace?: any
+}
+
+export interface TriageResult {
+  reportId: string
+  questionId: string
+  verdict: 'defect' | 'no_error' | 'display_issue' | 'app_issue' | 'language_mode' | 'already_fixed' | 'not_actionable' | string
+  repair?: string | null
+  edit?: ProposedEdit | null
+  route: 'auto_apply' | 'faculty_review' | 'no_change' | string
+  confidence: number
+  evidence: string
+  student_reply: string
+}
