@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
+import confetti from "canvas-confetti"
 import {
   ArrowLeft,
   Check,
@@ -134,6 +135,16 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
 
       if (res.ok) {
         setIsConfirmOpen(false)
+        try {
+          confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { y: 0.7 },
+            colors: ["#2563EB", "#10B981", "#3B82F6"],
+          })
+        } catch {
+          // ignore
+        }
         toast.success("Correction approved and committed to SQLite audit ledger.")
         fetchWorkspace()
       } else {

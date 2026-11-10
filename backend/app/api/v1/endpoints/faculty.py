@@ -1,6 +1,7 @@
 import json
 from typing import Annotated, Any, Dict, List, Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
+from app.api.v1.endpoints.auth import get_current_user_optional
 from app.core.database import get_db_connection
 from app.schemas.faculty import (
     FacultyActionRequest,
@@ -297,13 +298,19 @@ def get_faculty_review_item(report_id: str) -> Dict[str, Any]:
 
 
 @router.post("/approve/{report_id}", response_model=FacultyActionResponse, summary="Approve and apply surgical correction")
-def approve_correction(report_id: str, payload: FacultyActionRequest) -> FacultyActionResponse:
+def approve_correction(
+    report_id: str,
+    payload: FacultyActionRequest,
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+) -> FacultyActionResponse:
     """Authorizes and commits an approved surgical patch into persistent audit ledger."""
     report = data_loader.get_report_by_id(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"Report '{report_id}' not found")
 
     qid = report["questionId"]
+    reviewer_id = payload.faculty_id or (current_user and current_user.get("email")) or "faculty_1"
+    reviewer_name = payload.faculty_name or (current_user and current_user.get("name")) or "Reviewing Faculty"
 
     # Check if already approved (Prevent duplicate approvals)
     with get_db_connection() as conn:
@@ -359,8 +366,8 @@ def approve_correction(report_id: str, payload: FacultyActionRequest) -> Faculty
             (
                 report_id,
                 qid,
-                payload.faculty_id or "faculty_1",
-                payload.faculty_name or "Reviewing Faculty",
+                reviewer_id,
+                reviewer_name,
                 payload.notes or "Correction approved after verification.",
                 json.dumps(active_edit.model_dump()) if active_edit else None,
             ),
@@ -380,13 +387,19 @@ def approve_correction(report_id: str, payload: FacultyActionRequest) -> Faculty
 
 
 @router.post("/reject/{report_id}", response_model=FacultyActionResponse, summary="Reject a proposed defect correction")
-def reject_correction(report_id: str, payload: FacultyActionRequest) -> FacultyActionResponse:
+def reject_correction(
+    report_id: str,
+    payload: FacultyActionRequest,
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+) -> FacultyActionResponse:
     """Rejects a proposed repair, keeping question unchanged and logging reason."""
     report = data_loader.get_report_by_id(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"Report '{report_id}' not found")
 
     qid = report["questionId"]
+    reviewer_id = payload.faculty_id or (current_user and current_user.get("email")) or "faculty_1"
+    reviewer_name = payload.faculty_name or (current_user and current_user.get("name")) or "Reviewing Faculty"
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -409,8 +422,8 @@ def reject_correction(report_id: str, payload: FacultyActionRequest) -> FacultyA
             (
                 report_id,
                 qid,
-                payload.faculty_id or "faculty_1",
-                payload.faculty_name or "Reviewing Faculty",
+                reviewer_id,
+                reviewer_name,
                 payload.notes or "Proposal rejected after review.",
             ),
         )
@@ -429,13 +442,19 @@ def reject_correction(report_id: str, payload: FacultyActionRequest) -> FacultyA
 
 
 @router.post("/defer/{report_id}", response_model=FacultyActionResponse, summary="Defer report for specialist review")
-def defer_review(report_id: str, payload: FacultyActionRequest) -> FacultyActionResponse:
+def defer_review(
+    report_id: str,
+    payload: FacultyActionRequest,
+    current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
+) -> FacultyActionResponse:
     """Defers an item to remain in the queue while seeking specialist consultation."""
     report = data_loader.get_report_by_id(report_id)
     if not report:
         raise HTTPException(status_code=404, detail=f"Report '{report_id}' not found")
 
     qid = report["questionId"]
+    reviewer_id = payload.faculty_id or (current_user and current_user.get("email")) or "faculty_1"
+    reviewer_name = payload.faculty_name or (current_user and current_user.get("name")) or "Reviewing Faculty"
 
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -458,8 +477,8 @@ def defer_review(report_id: str, payload: FacultyActionRequest) -> FacultyAction
             (
                 report_id,
                 qid,
-                payload.faculty_id or "faculty_1",
-                payload.faculty_name or "Reviewing Faculty",
+                reviewer_id,
+                reviewer_name,
                 payload.notes or "Deferred for specialist faculty consultation.",
             ),
         )

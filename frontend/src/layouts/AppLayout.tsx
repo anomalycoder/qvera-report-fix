@@ -15,7 +15,9 @@ import {
   X,
   User,
   Settings as SettingsIcon,
-  ExternalLink
+  ExternalLink,
+  LogOut,
+  Globe,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,6 +34,10 @@ interface AppLayoutProps {
   searchValue?: string
   onRefresh?: () => void
   isRefreshing?: boolean
+  userName?: string
+  userEmail?: string
+  onLogout?: () => void
+  onNavigateHome?: () => void
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -44,6 +50,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   searchValue = "",
   onRefresh,
   isRefreshing = false,
+  userName = "Dr. A. Sharma",
+  userEmail = "demo@acadza.local",
+  onLogout,
+  onNavigateHome,
 }) => {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -385,16 +395,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">
-                  AS
+                  {userName.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-[#111827]">Dr. A. Sharma</div>
-                  <div className="text-xs text-slate-500">Senior Physics Faculty</div>
+                  <div className="font-bold text-sm text-[#111827]">{userName}</div>
+                  <div className="text-xs text-slate-500">{userEmail}</div>
                 </div>
               </div>
               <button
                 onClick={() => setShowProfileMenu(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -406,7 +416,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   setShowProfileMenu(false)
                   onTabChange("settings")
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-700 hover:bg-slate-50 text-left font-medium"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-700 hover:bg-slate-50 text-left font-medium cursor-pointer"
               >
                 <SlidersHorizontal className="w-4 h-4 text-slate-500" />
                 <span>Closed Taxonomy & Governance</span>
@@ -416,15 +426,41 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   setShowProfileMenu(false)
                   onTabChange("activity")
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-700 hover:bg-slate-50 text-left font-medium"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-700 hover:bg-slate-50 text-left font-medium cursor-pointer"
               >
                 <History className="w-4 h-4 text-slate-500" />
                 <span>My Faculty Decisions Audit</span>
               </button>
+              {onNavigateHome && (
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false)
+                    onNavigateHome()
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded text-slate-700 hover:bg-slate-50 text-left font-medium cursor-pointer"
+                >
+                  <Globe className="w-4 h-4 text-slate-500" />
+                  <span>Public SaaS Website</span>
+                </button>
+              )}
             </div>
 
-            <div className="pt-2 border-t border-slate-100 flex justify-end">
-              <Button size="sm" variant="outline" onClick={() => setShowProfileMenu(false)}>
+            <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+              {onLogout && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => {
+                    setShowProfileMenu(false)
+                    onLogout()
+                  }}
+                  className="text-xs h-8 px-3"
+                >
+                  <LogOut className="w-3.5 h-3.5 mr-1.5" />
+                  Sign Out
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={() => setShowProfileMenu(false)} className="text-xs h-8 ml-auto">
                 Close
               </Button>
             </div>
