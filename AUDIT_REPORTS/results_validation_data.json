@@ -1,0 +1,43 @@
+{
+  "total_results": 44,
+  "total_expected_reports": 44,
+  "errors": [],
+  "warnings": [],
+  "verdict_distribution": {
+    "defect": 27,
+    "no_error": 12,
+    "app_issue": 1,
+    "language_mode": 1,
+    "display_issue": 2,
+    "not_actionable": 1
+  },
+  "routing_distribution": {
+    "auto_apply": 17,
+    "no_change": 17,
+    "faculty_review": 10
+  },
+  "repair_distribution": {
+    "answer_key": 6,
+    "spelling": 2,
+    "stem_data": 3,
+    "solution_fix": 4,
+    "option_repair": 3,
+    "syllabus": 1,
+    "wrong_chapter": 2,
+    "markup_leak": 1,
+    "identical_options": 1,
+    "exam_reference": 1,
+    "type_mismatch": 1,
+    "diagram": 1,
+    "answer_form": 1
+  },
+  "field_validations": {
+    "reportId_valid": 44,
+    "questionId_matched": 44,
+    "verdict_valid": 44,
+    "repair_valid": 44,
+    "confidence_valid": 44,
+    "edits_permitted": 44,
+    "safety_checks_passed": 0
+  }
+}

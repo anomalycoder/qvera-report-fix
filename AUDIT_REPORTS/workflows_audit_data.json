@@ -1,0 +1,37 @@
+{
+  "Workflow_A": {
+    "status": "PASSED",
+    "report_id": "R010",
+    "action": "approve",
+    "audit_log_id": 63,
+    "faculty": "Dr. A. Sharma"
+  },
+  "Workflow_B": {
+    "status": "PASSED",
+    "report_id": "R005",
+    "verdict": "defect",
+    "route": "auto_apply",
+    "repair": "answer_key",
+    "edit_field": "answer"
+  },
+  "Workflow_C": {
+    "status": "PASSED",
+    "report_id": "R033",
+    "action": "reject",
+    "audit_log_id": 64,
+    "unintended_edit": null
+  },
+  "Workflow_D": {
+    "status": "PASSED",
+    "report_id": "R034",
+    "action": "defer",
+    "audit_log_id": 65
+  },
+  "Workflow_E": {
+    "status": "PASSED",
+    "fresh_db_created": true,
+    "reports_processed": 44,
+    "results_count": 44,
+    "faculty_overview_accessible": true
+  }
+}

@@ -1,0 +1,862 @@
+{
+  "questions": {
+    "total": 43,
+    "unique_ids": 43,
+    "duplicate_ids": [],
+    "question_types": {
+      "scq": 31,
+      "integerQuestion": 10,
+      "mcq": 2
+    },
+    "subjects": {
+      "Physics": 33,
+      "Zoology": 6,
+      "Botany": 4
+    },
+    "missing_options": [
+      {
+        "id": "60ca4feb6420652745f55522",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "61ee6c9d90a1a968a168686b",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68c9ae5afb6b2f16e2d43b1c",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68dea87d387eea3d0d95fbe3",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "63c7cce12981ed154ee92c94",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68e872546e45ba37dcc16bc0",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "66fe9dbe22132e5a70a3e579",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "620e23cecc50543bc7db9186",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6208e80a9cb2ab67dac61bd0",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "61dffbec08489156b684bd22",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68e870ef42c06737d6e565c4",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68e8734442c06737d6e56da4",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6956d79788d7701e5617bc29",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "695ee00b88d7701e561aabc5",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "622df25ab70e4b50e44ff837",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6208e298fa399567e0878700",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "695ede2a88d7701e561aa9d9",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "612151a6a34397610a9a2e58",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "60f742f6660d187cc13a8078",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68f21df0941cda588bc0470b",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6264197209f4fd65f58f5707",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "617fa18efd53ff1629ed890f",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6062ec84518e9535e120c422",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68f21caf941cda588bc04365",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "60f744b3f1b9bc7cc7b4a949",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68c801bc1b1dbc16dc93bf2b",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "636283dbe3770c24f866e6d6",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "622f08d7b70e4b50e4500a1b",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "63765a28f1d8416ae0408d89",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68c8153cfb6b2f16e2d3ceaf",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6956d7e988d7701e5617bd3e",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "6956d7bb23cb221e570d6013",
+        "issue": "Options field missing/null"
+      },
+      {
+        "id": "68ecbacb2ec87a18deba1ad7",
+        "issue": "Options field missing/null"
+      }
+    ],
+    "missing_solutions": [
+      {
+        "id": "60ca4feb6420652745f55522",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea616d0cda73d07e93ae6",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea715387eea3d0d95f790",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "61ee6c9d90a1a968a168686b",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68c9ae5afb6b2f16e2d43b1c",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea87d387eea3d0d95fbe3",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "696a866665252c04fc1f81c2",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "63c7cce12981ed154ee92c94",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea619d0cda73d07e93aee",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68e872546e45ba37dcc16bc0",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "66fe9dbe22132e5a70a3e579",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "620e23cecc50543bc7db9186",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6208e80a9cb2ab67dac61bd0",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea657387eea3d0d95f54a",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "61dffbec08489156b684bd22",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68e870ef42c06737d6e565c4",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68e8734442c06737d6e56da4",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6956d79788d7701e5617bc29",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "695ee00b88d7701e561aabc5",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "622df25ab70e4b50e44ff837",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6208e298fa399567e0878700",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "695ede2a88d7701e561aa9d9",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "612151a6a34397610a9a2e58",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "60f742f6660d187cc13a8078",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68f21df0941cda588bc0470b",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6264197209f4fd65f58f5707",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "617fa18efd53ff1629ed890f",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6062ec84518e9535e120c422",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "5fc60508028950133eac8963",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea6e6387eea3d0d95f6f8",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68f21caf941cda588bc04365",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "60f744b3f1b9bc7cc7b4a949",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68c801bc1b1dbc16dc93bf2b",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea577d0cda73d07e9391c",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "636283dbe3770c24f866e6d6",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6263d75bdd44e265ef926d97",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "622f08d7b70e4b50e4500a1b",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "63765a28f1d8416ae0408d89",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68c8153cfb6b2f16e2d3ceaf",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6956d7e988d7701e5617bd3e",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "6956d7bb23cb221e570d6013",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68dea7c2387eea3d0d95f9bb",
+        "issue": "Solution empty or null"
+      },
+      {
+        "id": "68ecbacb2ec87a18deba1ad7",
+        "issue": "Solution empty or null"
+      }
+    ],
+    "missing_answers": [
+      {
+        "id": "60ca4feb6420652745f55522",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea616d0cda73d07e93ae6",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea715387eea3d0d95f790",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "61ee6c9d90a1a968a168686b",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68c9ae5afb6b2f16e2d43b1c",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea87d387eea3d0d95fbe3",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "696a866665252c04fc1f81c2",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "63c7cce12981ed154ee92c94",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea619d0cda73d07e93aee",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68e872546e45ba37dcc16bc0",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "66fe9dbe22132e5a70a3e579",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "620e23cecc50543bc7db9186",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6208e80a9cb2ab67dac61bd0",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea657387eea3d0d95f54a",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "61dffbec08489156b684bd22",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68e870ef42c06737d6e565c4",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68e8734442c06737d6e56da4",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6956d79788d7701e5617bc29",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "695ee00b88d7701e561aabc5",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "622df25ab70e4b50e44ff837",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6208e298fa399567e0878700",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "695ede2a88d7701e561aa9d9",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "612151a6a34397610a9a2e58",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "60f742f6660d187cc13a8078",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68f21df0941cda588bc0470b",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6264197209f4fd65f58f5707",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "617fa18efd53ff1629ed890f",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6062ec84518e9535e120c422",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "5fc60508028950133eac8963",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea6e6387eea3d0d95f6f8",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68f21caf941cda588bc04365",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "60f744b3f1b9bc7cc7b4a949",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68c801bc1b1dbc16dc93bf2b",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea577d0cda73d07e9391c",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "636283dbe3770c24f866e6d6",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6263d75bdd44e265ef926d97",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "622f08d7b70e4b50e4500a1b",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "63765a28f1d8416ae0408d89",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68c8153cfb6b2f16e2d3ceaf",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6956d7e988d7701e5617bd3e",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "6956d7bb23cb221e570d6013",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68dea7c2387eea3d0d95f9bb",
+        "issue": "Answer missing"
+      },
+      {
+        "id": "68ecbacb2ec87a18deba1ad7",
+        "issue": "Answer missing"
+      }
+    ],
+    "markup_warnings": [
+      {
+        "id": "60ca4feb6420652745f55522",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea616d0cda73d07e93ae6",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea715387eea3d0d95f790",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "61ee6c9d90a1a968a168686b",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68c9ae5afb6b2f16e2d43b1c",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea87d387eea3d0d95fbe3",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "696a866665252c04fc1f81c2",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "63c7cce12981ed154ee92c94",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea619d0cda73d07e93aee",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68e872546e45ba37dcc16bc0",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "66fe9dbe22132e5a70a3e579",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "620e23cecc50543bc7db9186",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6208e80a9cb2ab67dac61bd0",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea657387eea3d0d95f54a",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "61dffbec08489156b684bd22",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68e870ef42c06737d6e565c4",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68e8734442c06737d6e56da4",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6956d79788d7701e5617bc29",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "695ee00b88d7701e561aabc5",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "622df25ab70e4b50e44ff837",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6208e298fa399567e0878700",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "695ede2a88d7701e561aa9d9",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "612151a6a34397610a9a2e58",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "60f742f6660d187cc13a8078",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68f21df0941cda588bc0470b",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6264197209f4fd65f58f5707",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "617fa18efd53ff1629ed890f",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6062ec84518e9535e120c422",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "5fc60508028950133eac8963",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea6e6387eea3d0d95f6f8",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68f21caf941cda588bc04365",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "60f744b3f1b9bc7cc7b4a949",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68c801bc1b1dbc16dc93bf2b",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea577d0cda73d07e9391c",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "636283dbe3770c24f866e6d6",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6263d75bdd44e265ef926d97",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "622f08d7b70e4b50e4500a1b",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "63765a28f1d8416ae0408d89",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68c8153cfb6b2f16e2d3ceaf",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6956d7e988d7701e5617bd3e",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "6956d7bb23cb221e570d6013",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68dea7c2387eea3d0d95f9bb",
+        "issue": "Empty question content"
+      },
+      {
+        "id": "68ecbacb2ec87a18deba1ad7",
+        "issue": "Empty question content"
+      }
+    ],
+    "referenced_images_count": 0,
+    "referenced_images": []
+  },
+  "reports": {
+    "total": 44,
+    "unique_ids": 44,
+    "duplicate_ids": [],
+    "sources": {
+      "web": 9,
+      "android": 26,
+      "ios": 9
+    },
+    "orphaned_reports": [],
+    "missing_fields": [],
+    "suspicious_reports": []
+  },
+  "taxonomy": {
+    "verdicts_count": 7,
+    "verdicts": {
+      "defect": "The question, answer key or solution really is wrong.",
+      "no_error": "Checked and correct. The student misread or mis-solved it.",
+      "display_issue": "Stored content is fine; rendering, phone layout, slow load.",
+      "app_issue": "Platform behaviour, not this question (wrong option recorded, keyboard, lag).",
+      "language_mode": "Student wants a language the question is not available in.",
+      "already_fixed": "The reported problem is no longer present in the live record.",
+      "not_actionable": "Empty or unintelligible comment and checks found nothing."
+    },
+    "repairs_count": 18,
+    "auto_apply_repairs": [
+      "spelling",
+      "noise",
+      "exam_reference",
+      "markup_leak",
+      "answer_form",
+      "notation",
+      "stem_data",
+      "option_repair",
+      "solution_fix",
+      "solution_missing",
+      "answer_key",
+      "type_mismatch"
+    ],
+    "faculty_review_repairs": [
+      "identical_options",
+      "diagram",
+      "wrong_question",
+      "unsound",
+      "wrong_chapter",
+      "syllabus"
+    ],
+    "repairs_detail": {
+      "spelling": {
+        "auto": true,
+        "fields": [
+          "question",
+          "solution"
+        ]
+      },
+      "noise": {
+        "auto": true,
+        "fields": [
+          "question",
+          "solution"
+        ]
+      },
+      "exam_reference": {
+        "auto": true,
+        "fields": [
+          "question",
+          "solution"
+        ]
+      },
+      "markup_leak": {
+        "auto": true,
+        "fields": [
+          "question",
+          "solution"
+        ]
+      },
+      "answer_form": {
+        "auto": true,
+        "fields": [
+          "question"
+        ]
+      },
+      "notation": {
+        "auto": true,
+        "fields": [
+          "question",
+          "solution"
+        ]
+      },
+      "stem_data": {
+        "auto": true,
+        "fields": [
+          "question"
+        ]
+      },
+      "option_repair": {
+        "auto": true,
+        "fields": [
+          "question"
+        ]
+      },
+      "solution_fix": {
+        "auto": true,
+        "fields": [
+          "solution"
+        ]
+      },
+      "solution_missing": {
+        "auto": true,
+        "fields": [
+          "solution"
+        ]
+      },
+      "answer_key": {
+        "auto": true,
+        "fields": [
+          "answer",
+          "solution"
+        ]
+      },
+      "type_mismatch": {
+        "auto": true,
+        "fields": [
+          "questionType",
+          "question",
+          "answer"
+        ]
+      },
+      "identical_options": {
+        "auto": false,
+        "fields": []
+      },
+      "diagram": {
+        "auto": false,
+        "fields": []
+      },
+      "wrong_question": {
+        "auto": false,
+        "fields": []
+      },
+      "unsound": {
+        "auto": false,
+        "fields": []
+      },
+      "wrong_chapter": {
+        "auto": false,
+        "fields": []
+      },
+      "syllabus": {
+        "auto": false,
+        "fields": []
+      }
+    }
+  },
+  "relationships": {
+    "total_questions": 43,
+    "total_reports": 44,
+    "distinct_reported_questions": 39,
+    "questions_with_single_report": 35,
+    "questions_with_multiple_reports": 4,
+    "multi_report_details": {
+      "60f744b3f1b9bc7cc7b4a949": [
+        "R002",
+        "R003",
+        "R001"
+      ],
+      "60f742f6660d187cc13a8078": [
+        "R008",
+        "R007"
+      ],
+      "622f08d7b70e4b50e4500a1b": [
+        "R010",
+        "R009"
+      ],
+      "612151a6a34397610a9a2e58": [
+        "R018",
+        "R019"
+      ]
+    },
+    "unreported_questions_count": 4,
+    "unreported_questions": [
+      "68dea657387eea3d0d95f54a",
+      "68dea6e6387eea3d0d95f6f8",
+      "68dea87d387eea3d0d95fbe3",
+      "695ede2a88d7701e561aa9d9"
+    ]
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "health": {
+    "status": "healthy",
+    "database": "connected"
+  },
+  "dataset_stats": {
+    "total_questions": 43,
+    "total_reports": 44,
+    "distinct_reported": 39
+  },
+  "questions": {
+    "list_total": 43,
+    "first_item_id": "60ca4feb6420652745f55522"
+  },
+  "reports": {
+    "list_total": 44,
+    "first_report_id": "R005",
+    "grouped_count": 39
+  },
+  "taxonomy": {
+    "verdicts_count": 7,
+    "repairs_count": 18
+  },
+  "solver": {
+    "single_qid": "60ca4feb6420652745f55522",
+    "status": "verified"
+  },
+  "triage": {
+    "processed_count": 44,
+    "r001_verdict": "defect",
+    "r001_route": "auto_apply"
+  },
+  "faculty": {
+    "total_reports": 44,
+    "queue_total": 44,
+    "review_item_id": "R001"
+  },
+  "auth": {
+    "login_status": "success",
+    "user_email": "demo@acadza.local",
+    "user_role": "faculty"
+  }
+}
