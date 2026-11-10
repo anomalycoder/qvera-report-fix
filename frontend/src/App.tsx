@@ -4,25 +4,33 @@ import { OverviewPage } from "@/pages/OverviewPage"
 import { ReviewQueuePage } from "@/pages/ReviewQueuePage"
 import { QuestionsPage } from "@/pages/QuestionsPage"
 import { ActivityPage } from "@/pages/ActivityPage"
+import { SettingsPage } from "@/pages/SettingsPage"
 import { ReviewWorkspacePage } from "@/pages/ReviewWorkspacePage"
-import { Toaster } from "sonner"
+import { Toaster, toast } from "sonner"
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<NavTab>("overview")
   const [activeReportId, setActiveReportId] = useState<string>("R001")
   const [pendingCount, setPendingCount] = useState<number>(10)
   const [globalSearch, setGlobalSearch] = useState<string>("")
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Fetch live overview statistics to populate notifications and badge counter
-  const refreshPendingCount = () => {
-    fetch("/api/v1/faculty/overview")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
+  const refreshPendingCount = async () => {
+    setIsRefreshing(true)
+    try {
+      const res = await fetch("/api/v1/faculty/overview")
+      if (res.ok) {
+        const data = await res.json()
         if (data && typeof data.pending_faculty_reviews === "number") {
           setPendingCount(data.pending_faculty_reviews)
         }
-      })
-      .catch(() => {})
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   useEffect(() => {
@@ -34,6 +42,18 @@ export default function App() {
     setCurrentTab("workspace")
   }
 
+  const handleGlobalSearch = (val: string) => {
+    setGlobalSearch(val)
+    if (val && currentTab !== "queue" && currentTab !== "questions") {
+      setCurrentTab("queue")
+    }
+  }
+
+  const handleRefresh = async () => {
+    await refreshPendingCount()
+    toast.success("Live operational data refreshed.")
+  }
+
   return (
     <>
       <AppLayout
@@ -41,8 +61,10 @@ export default function App() {
         onTabChange={setCurrentTab}
         pendingCount={pendingCount}
         activeReportId={activeReportId}
-        onSearchChange={setGlobalSearch}
+        onSearchChange={handleGlobalSearch}
         searchValue={globalSearch}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
       >
         {currentTab === "overview" && (
           <OverviewPage
@@ -64,7 +86,11 @@ export default function App() {
           />
         )}
 
-        {currentTab === "activity" && <ActivityPage />}
+        {currentTab === "activity" && (
+          <ActivityPage onSelectReport={handleSelectReport} />
+        )}
+
+        {currentTab === "settings" && <SettingsPage />}
 
         {currentTab === "workspace" && (
           <ReviewWorkspacePage
@@ -74,16 +100,17 @@ export default function App() {
         )}
       </AppLayout>
 
-      {/* Modern, restrained toast notifications */}
+      {/* Vercel-style clean notifications */}
       <Toaster
         position="bottom-right"
         toastOptions={{
           style: {
             background: "#ffffff",
-            color: "#0f172a",
-            border: "1px solid #e2e8f0",
-            fontSize: "12px",
-            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)",
+            color: "#111827",
+            border: "1px solid #E5E7EB",
+            fontSize: "13px",
+            fontWeight: "500",
+            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.08)",
           },
         }}
       />

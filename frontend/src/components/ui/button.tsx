@@ -3,33 +3,33 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 select-none cursor-pointer",
   {
     variants: {
       variant: {
         default:
-          "bg-slate-900 text-white shadow-xs hover:bg-slate-800",
+          "bg-[#111827] text-white shadow-xs hover:bg-[#1F2937]",
         primary:
-          "bg-blue-600 text-white shadow-xs hover:bg-blue-700",
+          "bg-blue-600 text-white shadow-xs hover:bg-blue-700 active:bg-blue-800",
         destructive:
-          "bg-rose-600 text-white shadow-xs hover:bg-rose-700",
+          "bg-rose-600 text-white shadow-xs hover:bg-rose-700 active:bg-rose-800",
         outline:
-          "border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 hover:text-slate-900",
+          "border border-[#E5E7EB] bg-white text-slate-800 shadow-2xs hover:bg-slate-50 hover:text-[#111827] hover:border-slate-300",
         secondary:
-          "bg-slate-100 text-slate-800 shadow-2xs hover:bg-slate-200/80",
+          "bg-slate-100 text-slate-800 shadow-2xs hover:bg-slate-200/80 active:bg-slate-200",
         ghost:
-          "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+          "text-slate-600 hover:bg-slate-100 hover:text-[#111827]",
         link:
           "text-blue-600 underline-offset-4 hover:underline",
         success:
-          "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700",
+          "bg-emerald-600 text-white shadow-xs hover:bg-emerald-700 active:bg-emerald-800",
       },
       size: {
-        default: "h-8 px-3 py-1.5",
-        sm: "h-7 rounded-md px-2.5 text-[11px]",
-        lg: "h-9 rounded-md px-4 text-xs font-semibold",
-        icon: "h-8 w-8",
-        iconSm: "h-7 w-7",
+        default: "h-9 px-3.5 py-2 text-sm",
+        sm: "h-8 rounded-md px-2.5 text-xs font-medium",
+        lg: "h-10 rounded-md px-5 text-base font-semibold",
+        icon: "h-9 w-9",
+        iconSm: "h-8 w-8",
       },
     },
     defaultVariants: {

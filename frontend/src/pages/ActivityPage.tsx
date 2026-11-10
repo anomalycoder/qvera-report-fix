@@ -9,7 +9,8 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Calendar
+  Calendar,
+  X
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,7 +24,11 @@ import {
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
 
-export const ActivityPage: React.FC = () => {
+interface ActivityPageProps {
+  onSelectReport?: (reportId: string) => void
+}
+
+export const ActivityPage: React.FC<ActivityPageProps> = ({ onSelectReport }) => {
   const [logs, setLogs] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -68,7 +73,7 @@ export const ActivityPage: React.FC = () => {
       case "approved":
       case "approve":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             Approved
           </span>
@@ -76,7 +81,7 @@ export const ActivityPage: React.FC = () => {
       case "rejected":
       case "reject":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-800 bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200">
             <XCircle className="w-3.5 h-3.5 text-rose-600" />
             Rejected
           </span>
@@ -84,7 +89,7 @@ export const ActivityPage: React.FC = () => {
       case "deferred":
       case "defer":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-800 bg-purple-50 px-2.5 py-0.5 rounded border border-purple-200">
             <Clock className="w-3.5 h-3.5 text-purple-600" />
             Deferred
           </span>
@@ -92,14 +97,14 @@ export const ActivityPage: React.FC = () => {
       case "auto_applied":
       case "auto_apply":
         return (
-          <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-800 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
             <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             Auto-Applied
           </span>
         )
       default:
         return (
-          <span className="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+          <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded border border-slate-200">
             {action}
           </span>
         )
@@ -107,38 +112,53 @@ export const ActivityPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-[#E5E7EB] pb-5">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-[#111827]">Decision & Audit Log</h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Immutable chronological audit ledger of faculty authorizations, rejections, and applied patches.
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#111827]">
+              Decision & Audit Log
+            </h1>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+              {filteredLogs.length} Records
+            </span>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Immutable chronological audit trail of faculty decisions, approved surgical repairs, and rejections.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-500 font-mono bg-white px-2.5 py-1 rounded border border-[#E5E7EB]">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+        <div className="flex items-center gap-2 text-xs text-slate-600 font-mono bg-white px-3 py-1.5 rounded-md border border-[#E5E7EB] shadow-2xs">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Storage: SQLite 3 (WAL Mode)</span>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white border border-[#E5E7EB] rounded-lg p-3 shadow-2xs flex flex-wrap items-center gap-2.5">
-        <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+      <div className="bg-white border border-[#E5E7EB] rounded-lg p-3.5 shadow-2xs flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[240px] max-w-md">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search reviewer, report, question ID, notes..."
-            className="w-full text-xs bg-slate-50 border border-[#E5E7EB] rounded-md pl-8 pr-2.5 py-1.5 text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:bg-white focus:border-blue-600 transition"
+            placeholder="Search reviewer, report ID, question ID, notes..."
+            className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md pl-9 pr-3 py-1.5 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white focus:border-blue-600 transition"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 text-xs"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="text-xs bg-slate-50 border border-[#E5E7EB] rounded-md px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:border-blue-600"
+          className="text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-1.5 text-slate-800 font-medium focus:outline-none focus:border-blue-600"
         >
           <option value="all">All Actions</option>
           <option value="approve">Approved</option>
@@ -153,11 +173,11 @@ export const ActivityPage: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow className="border-b border-[#E5E7EB] bg-slate-50/70">
-              <TableHead className="w-[14%] font-bold text-slate-700">Action</TableHead>
-              <TableHead className="w-[20%] font-bold text-slate-700">Question / Report</TableHead>
-              <TableHead className="w-[18%] font-bold text-slate-700">Reviewer</TableHead>
-              <TableHead className="w-[16%] font-bold text-slate-700">Date & Time</TableHead>
-              <TableHead className="w-[32%] font-bold text-slate-700">Result / Modification</TableHead>
+              <TableHead className="w-[14%]">Action</TableHead>
+              <TableHead className="w-[20%]">Question / Report</TableHead>
+              <TableHead className="w-[18%]">Reviewer</TableHead>
+              <TableHead className="w-[16%]">Date & Time</TableHead>
+              <TableHead className="w-[32%]">Result / Modification</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -165,19 +185,23 @@ export const ActivityPage: React.FC = () => {
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={5}>
-                    <Skeleton className="h-8 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </TableCell>
                 </TableRow>
               ))
             ) : filteredLogs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-xs text-slate-400">
+                <TableCell colSpan={5} className="h-36 text-center text-sm text-slate-400">
                   No activity log entries match your filter.
                 </TableCell>
               </TableRow>
             ) : (
               filteredLogs.map((log) => (
-                <TableRow key={log.log_id || log.id} className="border-b border-[#E5E7EB]/70">
+                <TableRow
+                  key={log.log_id || log.id}
+                  onClick={() => log.report_id && onSelectReport && onSelectReport(log.report_id)}
+                  className={`border-b border-[#E5E7EB] ${log.report_id && onSelectReport ? "cursor-pointer hover:bg-slate-50" : ""}`}
+                >
                   {/* Action */}
                   <TableCell>
                     {getActionBadge(log.action)}
@@ -185,39 +209,39 @@ export const ActivityPage: React.FC = () => {
 
                   {/* Question */}
                   <TableCell>
-                    <div className="font-mono text-xs text-[#111827] font-bold">
+                    <div className="font-mono text-sm text-[#111827] font-bold">
                       Report {log.report_id}
                     </div>
-                    <div className="text-[11px] text-slate-400 font-mono truncate max-w-[140px]">
+                    <div className="text-xs text-slate-400 font-mono truncate max-w-[150px]">
                       #{log.question_id?.slice(-8)}
                     </div>
                   </TableCell>
 
                   {/* Reviewer */}
-                  <TableCell className="text-xs text-slate-700">
-                    <span className="font-semibold text-slate-800">{log.reviewer_name || log.faculty_name || "Dr. A. Sharma"}</span>
+                  <TableCell className="text-sm text-slate-800">
+                    <span className="font-semibold">{log.reviewer_name || log.faculty_name || "Dr. A. Sharma"}</span>
                   </TableCell>
 
                   {/* Date */}
-                  <TableCell className="text-xs text-slate-500 font-mono">
+                  <TableCell className="text-sm text-slate-600 font-mono">
                     {log.timestamp ? new Date(log.timestamp).toLocaleString([], { dateStyle: "short", timeStyle: "short" }) : "Recent"}
                   </TableCell>
 
                   {/* Result */}
                   <TableCell>
                     {log.field_modified ? (
-                      <div className="text-xs">
-                        <span className="text-slate-500 font-mono text-[11px]">[{log.field_modified}]: </span>
-                        <span className="line-through text-rose-700 mr-1 font-mono text-[11px] font-semibold">
-                          {String(log.old_value).slice(0, 20)}
+                      <div className="text-sm">
+                        <span className="text-slate-500 font-mono text-xs">[{log.field_modified}]: </span>
+                        <span className="line-through text-rose-700 mr-1.5 font-mono text-xs font-bold">
+                          {String(log.old_value).slice(0, 24)}
                         </span>
-                        <ArrowRight className="w-3 h-3 inline text-slate-400 mx-1" />
-                        <span className="text-emerald-700 font-bold font-mono text-[11px]">
-                          {String(log.new_value).slice(0, 20)}
+                        <ArrowRight className="w-3.5 h-3.5 inline text-slate-400 mx-1" />
+                        <span className="text-emerald-700 font-extrabold font-mono text-xs">
+                          {String(log.new_value).slice(0, 24)}
                         </span>
                       </div>
                     ) : (
-                      <div className="text-xs text-slate-600 truncate max-w-sm italic">
+                      <div className="text-sm text-slate-700 truncate max-w-sm italic">
                         "{log.notes || "Report processed by reviewer."}"
                       </div>
                     )}

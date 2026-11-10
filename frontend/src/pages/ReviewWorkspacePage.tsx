@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Sparkles,
   Layers,
-  History as HistoryIcon
+  History as HistoryIcon,
+  RotateCw
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -214,11 +215,11 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-48 bg-white" />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-48 bg-white" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <Skeleton className="lg:col-span-7 h-[600px] bg-white rounded-lg border border-[#E5E7EB]" />
-          <Skeleton className="lg:col-span-5 h-[600px] bg-white rounded-lg border border-[#E5E7EB]" />
+          <Skeleton className="lg:col-span-7 h-[650px] bg-white rounded-lg border border-[#E5E7EB]" />
+          <Skeleton className="lg:col-span-5 h-[650px] bg-white rounded-lg border border-[#E5E7EB]" />
         </div>
       </div>
     )
@@ -228,8 +229,8 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
     return (
       <div className="p-8 text-center bg-white rounded-lg border border-[#E5E7EB] shadow-xs">
         <AlertTriangle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-        <h3 className="font-semibold text-sm text-[#111827]">Could Not Load Question Workspace</h3>
-        <p className="text-xs text-slate-500 mt-1 mb-4">{error || "Report details unavailable."}</p>
+        <h3 className="font-bold text-base text-[#111827]">Could Not Load Question Workspace</h3>
+        <p className="text-sm text-slate-500 mt-1 mb-4">{error || "Report details unavailable."}</p>
         <Button size="sm" variant="outline" onClick={onBackToQueue}>
           Return to Queue
         </Button>
@@ -254,51 +255,51 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Top Breadcrumb & Status Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-[#E5E7EB] rounded-lg px-4 py-2.5 shadow-2xs">
-        <div className="flex items-center gap-2 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-[#E5E7EB] rounded-lg px-5 py-3 shadow-2xs">
+        <div className="flex items-center gap-3 text-sm">
           <Button
             variant="ghost"
             size="sm"
             onClick={onBackToQueue}
-            className="h-7 px-2 text-xs text-slate-600 hover:text-slate-900"
+            className="h-8 px-2.5 text-sm text-slate-700 hover:text-slate-900 font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
             Back to Queue
           </Button>
           <span className="text-slate-300">/</span>
-          <span className="font-mono font-bold text-[#111827] text-xs">
+          <span className="font-mono font-bold text-[#111827] text-sm">
             {report.reportId}
           </span>
           <span className="text-slate-300">/</span>
-          <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border ${
+          <span className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded border ${
             reviewStatus === "approved"
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
               : reviewStatus === "rejected"
-              ? "bg-rose-50 text-rose-700 border-rose-200"
+              ? "bg-rose-50 text-rose-800 border-rose-200"
               : reviewStatus === "deferred"
-              ? "bg-purple-50 text-purple-700 border-purple-200"
-              : "bg-amber-50 text-amber-700 border-amber-200"
+              ? "bg-purple-50 text-purple-800 border-purple-200"
+              : "bg-amber-50 text-amber-800 border-amber-200"
           }`}>
             {reviewStatus}
           </span>
         </div>
 
         {/* Question ID indicator with Copy button */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-mono">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-mono">
           <span>Question ID:</span>
-          <span className="font-semibold text-slate-800">
-            {qid ? `${qid.slice(0, 10)}...` : "N/A"}
+          <span className="font-bold text-[#111827]">
+            {qid ? `${qid.slice(0, 12)}...` : "N/A"}
           </span>
           <button
             onClick={copyQid}
-            className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+            className="p-1 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition"
             title="Copy Question ID"
           >
-            <Copy className="w-3 h-3" />
+            <Copy className="w-3.5 h-3.5" />
           </button>
-          {copiedId && <span className="text-[10px] text-emerald-600 font-sans">Copied!</span>}
+          {copiedId && <span className="text-xs text-emerald-600 font-sans font-semibold">Copied!</span>}
         </div>
       </div>
 
@@ -307,43 +308,43 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
         {/* ======================================================== */}
         {/* LEFT PANEL: ACADEMIC CONTENT (7 cols)                     */}
         {/* ======================================================== */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-2xs space-y-4">
+        <div className="lg:col-span-7 space-y-6">
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-5">
             {/* Subject, Chapter & Metadata Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs uppercase tracking-wide">
                   {subject}
                 </span>
                 {chapter && (
-                  <span className="text-xs font-semibold text-slate-800">
+                  <span className="text-sm font-bold text-slate-900">
                     {chapter}
                   </span>
                 )}
               </div>
-              <div className="text-[11px] text-slate-400 font-mono">
-                Type: {questionType} &bull; Difficulty: {rawQ.difficulty ?? 2}/3
+              <div className="text-xs text-slate-500 font-mono">
+                Type: <strong className="text-slate-800">{questionType}</strong> &bull; Difficulty: <strong className="text-slate-800">{rawQ.difficulty ?? 2}/3</strong>
               </div>
             </div>
 
             {/* Question Stem (Native MathML Rendering) */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+            <div className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
                 Question Stem
               </span>
               <div
-                className="text-xs sm:text-[13px] text-slate-900 leading-relaxed font-sans"
+                className="text-sm sm:text-base text-slate-900 leading-relaxed font-sans select-text"
                 dangerouslySetInnerHTML={{ __html: stemHtml }}
               />
             </div>
 
             {/* Options List for SCQ / MCQ */}
             {optionsList.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <div className="space-y-2.5 pt-3 border-t border-slate-100">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
                   Options
                 </span>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="grid grid-cols-1 gap-2.5">
                   {optionsList.map((opt) => {
                     const isStored = String(storedAnswer || "").trim() === opt.key
                     const isProposed =
@@ -351,13 +352,13 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                       String(activeEdit.replace || "").trim() === opt.key
 
                     let borderStyle = "border-[#E5E7EB] bg-white"
-                    let badgeColor = "bg-slate-100 text-slate-700 border border-slate-200"
+                    let badgeColor = "bg-slate-100 text-slate-800 border border-slate-200"
 
                     if (isStored && isProposed) {
                       borderStyle = "border-emerald-300 bg-emerald-50/40"
                       badgeColor = "bg-emerald-600 text-white"
                     } else if (isProposed) {
-                      borderStyle = "border-blue-400 bg-blue-50/40 ring-1 ring-blue-400"
+                      borderStyle = "border-blue-400 bg-blue-50/50 ring-2 ring-blue-500/20"
                       badgeColor = "bg-blue-600 text-white"
                     } else if (isStored) {
                       borderStyle = "border-rose-200 bg-rose-50/20"
@@ -367,10 +368,10 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                     return (
                       <div
                         key={opt.key}
-                        className={`p-3 rounded-md border text-xs flex items-start gap-3 transition-colors ${borderStyle}`}
+                        className={`p-3.5 rounded-lg border text-sm flex items-start gap-3.5 transition-colors ${borderStyle}`}
                       >
                         <span
-                          className={`w-5 h-5 rounded flex items-center justify-center font-mono font-bold text-[11px] shrink-0 mt-0.5 ${badgeColor}`}
+                          className={`w-6 h-6 rounded flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5 ${badgeColor}`}
                         >
                           {opt.key}
                         </span>
@@ -378,24 +379,24 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                         <div className="flex-1 min-w-0">
                           {opt.text ? (
                             <div
-                              className="text-xs text-slate-900"
+                              className="text-sm text-slate-900"
                               dangerouslySetInnerHTML={{ __html: opt.text }}
                             />
                           ) : (
-                            <span className="text-slate-400 italic text-xs">
-                              [Option text blank or missing in source data]
+                            <span className="text-slate-400 italic text-sm">
+                              [Option text blank or missing in source dataset]
                             </span>
                           )}
                         </div>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="flex items-center gap-2 shrink-0">
                           {isStored && (
-                            <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                              Stored Answer
+                            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              Stored Key
                             </span>
                           )}
                           {isProposed && (
-                            <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded border border-blue-200">
+                            <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-200">
                               Proposed Answer
                             </span>
                           )}
@@ -409,17 +410,17 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
 
             {/* Integer Question Answer Display */}
             {questionType === "integerQuestion" && (
-              <div className="p-3 bg-slate-50 rounded-md border border-[#E5E7EB] text-xs flex items-center justify-between">
+              <div className="p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm flex items-center justify-between">
                 <div>
-                  <span className="text-slate-500 block text-[11px]">Stored Numerical Key:</span>
-                  <span className="text-base font-mono font-extrabold text-[#111827]">
+                  <span className="text-slate-500 block text-xs">Stored Numerical Key:</span>
+                  <span className="text-xl font-mono font-extrabold text-[#111827]">
                     {storedAnswer || "N/A"}
                   </span>
                 </div>
                 {activeEdit?.field === "answer" && (
                   <div className="text-right">
-                    <span className="text-blue-600 block text-[11px] font-medium">Proposed Correction:</span>
-                    <span className="text-base font-mono font-extrabold text-blue-700">
+                    <span className="text-blue-600 block text-xs font-bold">Proposed Correction:</span>
+                    <span className="text-xl font-mono font-extrabold text-blue-700">
                       {activeEdit.replace}
                     </span>
                   </div>
@@ -429,17 +430,17 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
 
             {/* Collapsible Original Solution */}
             {solutionHtml && (
-              <div className="pt-2 border-t border-slate-100">
+              <div className="pt-3 border-t border-slate-100">
                 <button
                   onClick={() => setShowOriginalSolution(!showOriginalSolution)}
-                  className="flex items-center justify-between w-full text-left text-xs font-semibold text-slate-700 hover:text-slate-900 py-1"
+                  className="flex items-center justify-between w-full text-left text-sm font-bold text-slate-800 hover:text-slate-900 py-1"
                 >
                   <span>Original Solution & Explanation</span>
-                  {showOriginalSolution ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  {showOriginalSolution ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
                 {showOriginalSolution && (
                   <div
-                    className="mt-2 p-3 bg-slate-50 rounded-md border border-[#E5E7EB] text-xs text-slate-700 leading-relaxed max-h-48 overflow-y-auto"
+                    className="mt-3 p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm text-slate-800 leading-relaxed max-h-52 overflow-y-auto"
                     dangerouslySetInnerHTML={{ __html: solutionHtml }}
                   />
                 )}
@@ -448,34 +449,34 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
           </div>
 
           {/* Student Report History */}
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-2xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-[#111827]">
-                <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#111827]">
+                <MessageSquare className="w-4 h-4 text-slate-500" />
                 <span>Student Report History ({peerReports.length})</span>
               </div>
               {peerReports.length > 1 && (
-                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200">
                   Multiple Student Consensus ({peerReports.length} reports)
                 </span>
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {peerReports.map((p: any) => (
                 <div
                   key={p.reportId}
-                  className={`p-3 rounded-md border text-xs ${
-                    p.reportId === report.reportId ? "bg-blue-50/30 border-blue-200" : "bg-slate-50/60 border-[#E5E7EB]"
+                  className={`p-3.5 rounded-lg border text-sm ${
+                    p.reportId === report.reportId ? "bg-blue-50/40 border-blue-200" : "bg-slate-50/60 border-[#E5E7EB]"
                   }`}
                 >
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                    <span className="font-mono font-bold text-slate-700">
+                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
+                    <span className="font-mono font-bold text-slate-800">
                       Report {p.reportId} &bull; {p.source?.toUpperCase() || "WEB"}
                     </span>
                     <span className="font-mono">{p.reportedAt ? new Date(p.reportedAt).toLocaleDateString() : "Recent"}</span>
                   </div>
-                  <p className="text-slate-800 text-xs italic">
+                  <p className="text-slate-900 text-sm italic">
                     "{p.comment || "No written comment provided."}"
                   </p>
                 </div>
@@ -487,18 +488,18 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
         {/* ======================================================== */}
         {/* RIGHT PANEL: REVIEW DECISION & ACTIONS (5 cols)           */}
         {/* ======================================================== */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-5 shadow-2xs space-y-4">
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-5">
             {/* 1. Issue Summary & Classification */}
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
                 Issue Classification
               </span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-[#111827]">
+              <div className="flex items-center gap-2.5">
+                <span className="text-base font-extrabold text-[#111827]">
                   {formatIssueName(triage?.repair, triage?.verdict)}
                 </span>
-                <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${
+                <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded border ${
                   triage?.verdict === "defect"
                     ? "bg-rose-50 text-rose-700 border-rose-200"
                     : "bg-slate-100 text-slate-700 border-slate-200"
@@ -509,65 +510,65 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             </div>
 
             {/* 2. Independent Verification Result */}
-            <div className="p-3.5 rounded-md bg-slate-50 border border-[#E5E7EB] space-y-2">
-              <div className="flex items-center justify-between text-xs">
+            <div className="p-4 rounded-lg bg-slate-50 border border-[#E5E7EB] space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
                 <span className="font-bold text-slate-800">Verification Result</span>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                   {solver?.verification_status === "verified" || solver?.verification_status === "mismatch"
                     ? "Confirmed"
                     : "Review Needed"}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                 {solver?.reasoning_steps?.[0] ||
                   triage?.evidence ||
                   "Independent verification derived from question stem formulas and physical laws."}
               </p>
               {solver?.derived_answer && (
-                <div className="text-[11px] pt-1 border-t border-slate-200/80 font-mono text-slate-700">
-                  Independently derived answer: <strong className="text-slate-900">{solver.derived_answer}</strong>
+                <div className="text-xs pt-2 border-t border-slate-200 font-mono text-slate-700">
+                  Independently derived answer: <strong className="text-[#111827] font-extrabold">{solver.derived_answer}</strong>
                 </div>
               )}
             </div>
 
             {/* 3. Proposed Correction (Clean Before/After Diff) */}
             {activeEdit ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Proposed Correction
                   </span>
                   <button
                     onClick={() => setIsAdjustOpen(true)}
-                    className="text-[11px] text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold"
+                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-bold"
                   >
-                    <Edit3 className="w-3 h-3" />
+                    <Edit3 className="w-3.5 h-3.5" />
                     Adjust patch
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-3 rounded-md border border-rose-200 bg-rose-50/40">
-                    <span className="text-[10px] font-bold text-rose-700 block mb-1">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/40">
+                    <span className="text-xs font-bold text-rose-700 block mb-1">
                       Original ({activeEdit.field})
                     </span>
-                    <div className="font-mono text-xs text-rose-950 font-bold break-all">
+                    <div className="font-mono text-sm text-rose-950 font-bold break-all">
                       {String(activeEdit.find ?? activeEdit.old_value ?? "Current")}
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-md border border-emerald-200 bg-emerald-50/40">
-                    <span className="text-[10px] font-bold text-emerald-700 block mb-1">
+                  <div className="p-3.5 rounded-lg border border-emerald-200 bg-emerald-50/40">
+                    <span className="text-xs font-bold text-emerald-700 block mb-1">
                       Proposed ({activeEdit.field})
                     </span>
-                    <div className="font-mono text-xs text-emerald-950 font-bold break-all">
+                    <div className="font-mono text-sm text-emerald-950 font-bold break-all">
                       {String(activeEdit.replace ?? activeEdit.new_value ?? "Corrected")}
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="p-3 bg-slate-50 border border-[#E5E7EB] rounded-md text-xs text-slate-500">
+              <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-lg text-sm text-slate-600">
                 No content mutation proposed (report classified as {triage?.verdict || "no_error"}).
               </div>
             )}
@@ -575,34 +576,35 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             {/* 4. Student Reply Draft Preview */}
             {triage?.student_reply && (
               <div className="space-y-1.5 pt-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
                   Student Reply Draft
                 </span>
-                <div className="p-3 bg-slate-50 rounded-md border border-[#E5E7EB] text-xs text-slate-700 leading-relaxed italic">
+                <div className="p-3.5 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm text-slate-800 leading-relaxed italic">
                   "{triage.student_reply}"
                 </div>
               </div>
             )}
 
             {/* 5. Collapsible Technical Details */}
-            <div className="border-t border-slate-100 pt-2">
+            <div className="border-t border-slate-100 pt-3">
               <button
                 onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-                className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-800 py-1"
+                className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-900 py-1 font-medium"
               >
                 <span>Technical details & solver diagnostics</span>
-                {showTechnicalDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {showTechnicalDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
 
               {showTechnicalDetails && (
-                <div className="mt-2 p-3 bg-slate-50 rounded-md border border-[#E5E7EB] text-[11px] space-y-1.5 font-mono text-slate-600 overflow-x-auto">
-                  <div>Routing Gate: {triage?.route || "faculty_review"}</div>
-                  <div>Taxonomy Repair: {triage?.repair || "N/A"}</div>
-                  <div>SymPy Engine Status: {solver?.verification_status || "mismatch"}</div>
+                <div className="mt-2.5 p-3.5 bg-slate-50 rounded-lg border border-[#E5E7EB] text-xs space-y-2 font-mono text-slate-700 overflow-x-auto">
+                  <div>Routing Gate: <strong className="text-slate-900">{triage?.route || "faculty_review"}</strong></div>
+                  <div>Taxonomy Repair: <strong className="text-slate-900">{triage?.repair || "N/A"}</strong></div>
+                  <div>SymPy Engine Status: <strong className="text-slate-900">{solver?.verification_status || "mismatch"}</strong></div>
                   {solver?.reasoning_steps && solver.reasoning_steps.length > 1 && (
-                    <div className="pt-1 text-[10px] text-slate-500">
+                    <div className="pt-2 text-xs text-slate-600 border-t border-slate-200 space-y-1">
+                      <span className="font-sans font-bold text-slate-700 block text-[11px] uppercase">Reasoning Steps:</span>
                       {solver.reasoning_steps.map((st: string, idx: number) => (
-                        <div key={idx}>&bull; {st}</div>
+                        <div key={idx} className="font-sans">&bull; {st}</div>
                       ))}
                     </div>
                   )}
@@ -611,25 +613,25 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             </div>
 
             {/* 6. Faculty Action Controls */}
-            <div className="pt-3 border-t border-slate-100 space-y-2">
+            <div className="pt-4 border-t border-slate-100 space-y-3">
               <Button
                 variant="primary"
                 onClick={() => setIsConfirmOpen(true)}
                 disabled={isSubmitting || reviewStatus === "approved"}
-                className="w-full text-xs font-bold h-9 bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
+                className="w-full text-sm font-bold h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
               >
-                <Check className="w-4 h-4 mr-1.5" />
+                <Check className="w-4 h-4 mr-2" />
                 {reviewStatus === "approved" ? "Correction Already Approved" : "Approve Correction"}
               </Button>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
                   onClick={handleReject}
                   disabled={isSubmitting}
-                  className="text-xs text-rose-700 hover:bg-rose-50 hover:text-rose-800 h-8 border-[#E5E7EB]"
+                  className="text-xs sm:text-sm text-rose-700 hover:bg-rose-50 hover:text-rose-800 h-9 border-[#E5E7EB] font-semibold"
                 >
-                  <X className="w-3.5 h-3.5 mr-1" />
+                  <X className="w-4 h-4 mr-1.5" />
                   Reject
                 </Button>
 
@@ -637,9 +639,9 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                   variant="outline"
                   onClick={handleDefer}
                   disabled={isSubmitting}
-                  className="text-xs text-slate-700 hover:bg-slate-50 h-8 border-[#E5E7EB]"
+                  className="text-xs sm:text-sm text-slate-700 hover:bg-slate-50 h-9 border-[#E5E7EB] font-semibold"
                 >
-                  <Clock className="w-3.5 h-3.5 mr-1" />
+                  <Clock className="w-4 h-4 mr-1.5" />
                   Defer / Escalate
                 </Button>
               </div>
@@ -658,30 +660,30 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 text-xs my-2">
-            <div className="p-3 bg-slate-50 rounded-md border border-[#E5E7EB] space-y-2">
-              <div className="flex justify-between text-slate-600">
-                <span>Target Field:</span>
-                <span className="font-mono font-bold text-slate-800">{activeEdit?.field || "answer"}</span>
+          <div className="space-y-4 text-sm my-3">
+            <div className="p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] space-y-2.5">
+              <div className="flex justify-between text-slate-700">
+                <span className="font-medium">Target Field:</span>
+                <span className="font-mono font-bold text-slate-900">{activeEdit?.field || "answer"}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Original Value:</span>
+              <div className="flex justify-between text-slate-700">
+                <span className="font-medium">Original Value:</span>
                 <span className="font-mono text-rose-700 font-bold">{String(activeEdit?.find ?? storedAnswer ?? "N/A")}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Corrected Value:</span>
+              <div className="flex justify-between text-slate-700">
+                <span className="font-medium">Corrected Value:</span>
                 <span className="font-mono text-emerald-700 font-bold">{String(activeEdit?.replace ?? "N/A")}</span>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700">Reviewer Notes (Optional):</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700">Reviewer Notes (Optional):</label>
               <input
                 type="text"
                 value={actionNotes}
                 onChange={(e) => setActionNotes(e.target.value)}
                 placeholder="e.g. Verified SymPy phasor proof, approved."
-                className="w-full text-xs bg-slate-50 border border-[#E5E7EB] rounded-md px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-600 focus:bg-white"
+                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
               />
             </div>
           </div>
@@ -695,7 +697,7 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
               size="sm"
               onClick={handleApprove}
               disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
             >
               {isSubmitting ? "Committing..." : "Authorize Correction"}
             </Button>
@@ -713,9 +715,9 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 text-xs my-2">
+          <div className="space-y-4 text-sm my-3">
             <div>
-              <label className="text-[11px] font-semibold text-slate-700 block mb-1">Target Field:</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Target Field:</label>
               <select
                 value={customEdit?.field || "answer"}
                 onChange={(e) =>
@@ -725,7 +727,7 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                     replace: prev?.replace ?? "",
                   }))
                 }
-                className="w-full text-xs bg-slate-50 border border-[#E5E7EB] rounded-md px-2.5 py-1.5"
+                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900 font-medium"
               >
                 <option value="answer">answer (Answer Key)</option>
                 <option value="solution">solution (Explanation Text)</option>
@@ -734,7 +736,7 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-700 block mb-1">Target to Find:</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Target to Find:</label>
               <input
                 type="text"
                 value={String(customEdit?.find ?? "")}
@@ -745,12 +747,12 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                     replace: prev?.replace ?? "",
                   }))
                 }
-                className="w-full text-xs bg-slate-50 border border-[#E5E7EB] rounded-md px-2.5 py-1.5"
+                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-semibold text-slate-700 block mb-1">Replacement Value:</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Replacement Value:</label>
               <input
                 type="text"
                 value={String(customEdit?.replace ?? "")}
@@ -761,7 +763,7 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                     replace: e.target.value,
                   }))
                 }
-                className="w-full text-xs bg-slate-50 border border-[#E5E7EB] rounded-md px-2.5 py-1.5"
+                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900"
               />
             </div>
           </div>
@@ -777,7 +779,7 @@ export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
                 setIsAdjustOpen(false)
                 toast.success("Custom patch updated.")
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
             >
               Save Patch
             </Button>
