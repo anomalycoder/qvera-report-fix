@@ -26,9 +26,18 @@ class TriageEngine:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO triage_records (
-                        report_id, question_id, verdict, repair, route, confidence, evidence, student_reply, edit_payload, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    INSERT INTO triage_records (
+                        report_id, question_id, verdict, repair, route, confidence, evidence, student_reply, edit_payload, status, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', CURRENT_TIMESTAMP)
+                    ON CONFLICT(report_id) DO UPDATE SET
+                        verdict = excluded.verdict,
+                        repair = excluded.repair,
+                        route = excluded.route,
+                        confidence = excluded.confidence,
+                        evidence = excluded.evidence,
+                        student_reply = excluded.student_reply,
+                        edit_payload = excluded.edit_payload,
+                        updated_at = CURRENT_TIMESTAMP;
                     """,
                     (
                         result.reportId,

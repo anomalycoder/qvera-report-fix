@@ -21,18 +21,18 @@ acadza-report-fix/
 │   │       ├── taxonomy_service.py       # Dynamic closed-taxonomy validator
 │   │       ├── triage_engine.py          # Master report classification engine
 │   │       └── solver/                   # Independent SymPy verification engine
-│   ├── tests/               # 37 automated pytest integration tests
+│   ├── tests/               # 55 automated pytest integration tests
 │   └── main.py              # Application entrypoint & CORS lifecycle
 │
 ├── frontend/                 # React 19 + Vite 8 + TypeScript + Tailwind CSS v4
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── FacultyConsole/ # ReviewQueue, QuestionViewer, SolverTraceCard, DiffViewer, StudentReplyCard, AuditActionPanel
+│   │   │   ├── FacultyConsole/ # ReviewQueue, QuestionViewer, SolverTraceCard, DiffViewer, StudentReplyCard, AuditActionPanel, ApprovalConfirmModal, PatchEditModal
 │   │   │   ├── ui/             # Reusable UI primitives (Badge, Card)
 │   │   │   ├── DatasetStatsCard.tsx
 │   │   │   └── HealthStatusCard.tsx
-│   │   ├── layouts/          # Responsive DashboardLayout with navigation tabs
-│   │   ├── pages/            # FacultyConsolePage, DashboardPage, AuditLedgerPage
+│   │   ├── layouts/          # Collapsible FacultyLayout with sidebar & header
+│   │   ├── pages/            # FacultyOverviewPage, FacultyQueuePage, FacultyWorkspacePage, FacultyAnalyticsPage, FacultySettingsPage, AuditLedgerPage, DashboardPage
 │   │   └── types/            # TypeScript schemas & API types
 │
 ├── data/                     # Read-only production datasets (Never mutated)
@@ -165,7 +165,7 @@ npm run dev
 # Run pytest from workspace root
 python -m pytest backend/tests -v
 ```
-**Results**: `37 passed in 1.69s` (100% passing across loading, normalization, grouping, SymPy solvers, taxonomy safety, triage classifications, and audit logs).
+**Results**: `55 passed in 4.96s` (100% passing across loading, normalization, grouping, SymPy solvers, taxonomy safety, triage classifications, faculty review workflows, duplicate approval prevention, and audit logs).
 
 ### 5. Build Frontend for Production
 ```bash

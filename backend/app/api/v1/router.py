@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import audit, dataset, health, questions, reports, solver, taxonomy, triage
+from app.api.v1.endpoints import audit, dataset, faculty, health, questions, reports, solver, taxonomy, triage
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["Health"])
@@ -10,3 +10,4 @@ api_router.include_router(taxonomy.router, prefix="/taxonomy", tags=["Taxonomy"]
 api_router.include_router(solver.router, prefix="/solver", tags=["Solver"])
 api_router.include_router(triage.router, prefix="/triage", tags=["Triage"])
 api_router.include_router(audit.router, prefix="/audit", tags=["Audit"])
+api_router.include_router(faculty.router, prefix="/faculty", tags=["Faculty"])
