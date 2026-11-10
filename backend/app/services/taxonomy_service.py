@@ -82,6 +82,15 @@ class TaxonomyService:
             raise ValueError(f"Unknown repair key '{repair_key}'")
         return rep.auto
 
+    def supports_auto_apply(self, repair_key: str) -> bool:
+        """Alias for is_auto_applicable."""
+        return self.is_auto_applicable(repair_key)
+
+    def validate_edit_field(self, repair_key: str, target_field: str) -> bool:
+        """Returns boolean True if field is permitted for repair_key."""
+        res = self.validate_edit_scope(repair_key, target_field)
+        return res.is_valid
+
     def validate_edit_scope(self, repair_key: str, target_field: str) -> EditScopeValidationResult:
         """Validates that a proposed edit only modifies fields within repair scope.
         Strictly prevents edits outside permitted repair scope.

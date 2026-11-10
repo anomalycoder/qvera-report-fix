@@ -32,6 +32,10 @@ class VerificationResponse(BaseModel):
     details: Optional[Dict[str, Any]] = None
 
 
+# Alias for Prompt 04 spec interoperability
+VerificationOutput = VerificationResponse
+
+
 class BatchVerificationRequest(BaseModel):
     question_ids: Optional[List[str]] = Field(None, description="Optional subset of IDs. If omitted, all questions are verified.")
     limit: Optional[int] = Field(50, ge=1, le=100)
