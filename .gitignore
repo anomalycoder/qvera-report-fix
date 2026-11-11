@@ -45,3 +45,5 @@ skills-lock.json
 .idea/
 *.sublime-project
 *.sublime-workspace
+
+.vercel

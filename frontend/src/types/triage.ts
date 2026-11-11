@@ -1,9 +1,12 @@
 export interface ProposedEdit {
   field: 'question' | 'solution' | 'answer' | 'questionType' | string
+  operation?: string
   find?: any
   replace?: any
   old_value?: any
   new_value?: any
+  reason?: string
+  evidence?: string[]
 }
 
 export interface TriageResult {
