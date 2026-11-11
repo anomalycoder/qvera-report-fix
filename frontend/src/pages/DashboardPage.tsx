@@ -22,7 +22,7 @@ export const DashboardPage: React.FC = () => {
             Prompt 02: Dataset Processing & Intelligence Foundation
           </Badge>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Acadza "Report → Fix" Quality Assurance Platform
+            QVERA "Report → Fix" Quality Assurance Platform
           </h1>
           <p className="mt-2 text-slate-300 text-sm sm:text-base leading-relaxed">
             The intelligent pipeline between raw student error reports and surgical repairs for JEE/NEET questions.

@@ -82,7 +82,7 @@ export const MiniWorkflowVisual: React.FC = () => {
           <div className="w-3 h-3 rounded-full bg-amber-500/80" />
           <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
           <span className="text-xs font-mono text-slate-400 ml-2">
-            acadza-runtime-engine // pipeline-flow
+            qvera-runtime-engine // pipeline-flow
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-slate-400">

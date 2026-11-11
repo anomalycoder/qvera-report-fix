@@ -3,26 +3,26 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold transition-colors border focus:outline-none select-none",
+  "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium transition-colors border focus:outline-none select-none",
   {
     variants: {
       variant: {
         default:
-          "border-[#E5E7EB] bg-slate-100 text-[#111827]",
+          "border-[#DFDBD0] bg-[#EFECE6] text-[#222222]",
         secondary:
-          "border-[#E5E7EB] bg-slate-50 text-slate-700",
+          "border-[#E2DFD6] bg-[#F9F8F3] text-[#555555]",
         outline:
-          "border-[#E5E7EB] bg-white text-slate-800",
+          "border-[#DFDBD0] bg-white text-[#111111]",
         primary:
-          "border-blue-200 bg-blue-50 text-blue-700",
+          "border-[#C5C1B4] bg-[#EAE7DC] text-[#111111]",
         success:
-          "border-emerald-200 bg-emerald-50 text-emerald-800",
+          "border-[#D1FADF] bg-[#ECFDF3] text-[#15803D]",
         warning:
-          "border-amber-200 bg-amber-50 text-amber-800",
+          "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]",
         destructive:
-          "border-rose-200 bg-rose-50 text-rose-800",
+          "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]",
         critical:
-          "border-rose-300 bg-rose-100 text-rose-900 font-bold",
+          "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C] font-semibold",
       },
     },
     defaultVariants: {

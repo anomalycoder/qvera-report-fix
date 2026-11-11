@@ -36,6 +36,10 @@ venv/
 *.db
 *.sqlite3
 
+# Agent skills tooling
+.agents/
+skills-lock.json
+
 # IDE / Editor
 .vscode/
 .idea/

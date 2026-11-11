@@ -6,6 +6,7 @@ from app.api.v1.endpoints.auth import (
     logout,
     require_faculty,
     extract_token,
+    update_me,
 )
 from app.core.security import (
     DEMO_EMAIL,
@@ -16,7 +17,7 @@ from app.core.security import (
     get_user_from_token,
     delete_session,
 )
-from app.schemas.auth import LoginRequest
+from app.schemas.auth import LoginRequest, ProfileUpdateRequest
 
 
 def test_seed_demo_user():
@@ -97,7 +98,7 @@ def test_auth_me_and_role_protection():
     # Require faculty blocks non-faculty
     student_dict = {
         "id": 2,
-        "email": "student@acadza.local",
+        "email": "student@qvera.local",
         "name": "Student",
         "role": "student",
         "avatar": None,
@@ -117,3 +118,19 @@ def test_session_deletion_on_logout():
     deleted = delete_session(token)
     assert deleted is True
     assert get_user_from_token(token) is None
+
+
+def test_update_profile_name():
+    user = seed_demo_user()
+    original_name = user["name"]
+    updated = update_me(
+        ProfileUpdateRequest(name="Dr. QVERA Faculty"),
+        current_user=user,
+    )
+    assert updated.name == "Dr. QVERA Faculty"
+
+    restored = update_me(
+        ProfileUpdateRequest(name=original_name),
+        current_user=user,
+    )
+    assert restored.name == original_name

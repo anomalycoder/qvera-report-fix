@@ -25,7 +25,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 A
               </div>
               <div>
-                <span className="font-bold text-slate-900 text-lg tracking-tight">Acadza</span>
+                <span className="font-bold text-slate-900 text-lg tracking-tight">QVERA</span>
                 <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                   Report → Fix
                 </span>
@@ -114,7 +114,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-        Acadza Question Quality Assurance Platform &bull; Provider-Independent Architecture &bull; SymPy Math Verification
+        QVERA Question Quality Assurance Platform &bull; Provider-Independent Architecture &bull; SymPy Math Verification
       </footer>
     </div>
   )

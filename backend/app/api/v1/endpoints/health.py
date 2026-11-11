@@ -26,7 +26,7 @@ def health_check() -> HealthCheckResponse:
 
     return HealthCheckResponse(
         status=status,
-        service="acadza-report-fix-backend",
+        service="qvera-report-fix-backend",
         version="1.0.0",
         environment=settings.ENV,
         database="connected" if db_healthy else "disconnected",

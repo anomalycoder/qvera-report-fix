@@ -31,7 +31,7 @@ export const ProductShowcase: React.FC<{ onNavigateToLogin: () => void }> = ({
             <div className="w-3 h-3 rounded-full bg-slate-700" />
           </div>
           <span className="text-xs font-mono text-slate-400 pl-2">
-            https://acadza.local/dashboard/{activeTab}
+            https://qvera.local/dashboard/{activeTab}
           </span>
         </div>
 

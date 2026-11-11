@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Acadza Report -> Fix Engine"
+    PROJECT_NAME: str = "QVERA Report -> Fix Engine"
     API_V1_STR: str = "/api/v1"
     ENV: str = "development"
     PORT: int = 8000
@@ -19,12 +19,24 @@ class Settings(BaseSettings):
     DATA_DIR: Path = Path(__file__).resolve().parent.parent.parent.parent / "data"
 
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = [
+    BACKEND_CORS_ORIGINS: Union[List[str], str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+    CORS_ALLOW_ORIGIN_REGEX: str | None = None
+    ALLOW_DEMO_AUTH: bool = True
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str) and not v.strip().startswith("["):
+            return [i.strip() for i in v.split(",") if i.strip()]
+        if isinstance(v, str) and v.strip().startswith("["):
+            import json
+            return json.loads(v)
+        return v
 
     # AI Configuration (Provider-Independent)
     LLM_PROVIDER: str = "provider_independent"

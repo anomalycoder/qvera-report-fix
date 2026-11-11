@@ -1,41 +1,91 @@
 @import "tailwindcss";
+@import "katex/dist/katex.min.css";
+
+@theme {
+  --color-canvas: #F9F8F3;
+  --color-surface: #FFFFFF;
+  --color-surface-warm: #EFECE6;
+  --color-surface-active: #EAE7DC;
+  --color-ink: #111111;
+  --color-secondary-text: #555555;
+  --color-muted-text: #666666;
+  --color-primary-button: #0B0F12;
+  --color-border: #C5C1B4;
+  --color-border-subtle: #DFDBD0;
+  --color-divider: #E5E2D9;
+  --color-slate-ink: #222B38;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-warning: #B45309;
+
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Monaco, Consolas, monospace;
+}
+
+:root {
+  --background: #F9F8F3;
+  --surface: #FFFFFF;
+  --surface-warm: #EFECE6;
+  --surface-active: #EAE7DC;
+
+  --text-primary: #111111;
+  --text-secondary: #555555;
+  --text-muted: #666666;
+
+  --button-primary: #0B0F12;
+  --button-text: #FFFFFF;
+  --border: #C5C1B4;
+  --border-subtle: #DFDBD0;
+
+  --slate-ink: #222B38;
+  --success: #16A34A;
+  --error: #DC2626;
+  --warning: #B45309;
+
+  --radius-button: 8px;
+  --radius-card: 16px;
+  --radius-panel: 20px;
+}
 
 @layer base {
-  :root {
-    --background: 210 40% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+  * {
+    border-color: #E2DFD6;
+  }
+
+  body {
+    background-color: #F9F8F3;
+    color: #111111;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: #f8fafc;
-  color: #0f172a;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Custom minimal warm-stone scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #DFDBD0;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C5C1B4;
 }
 
+/* MathML and KaTeX Math rendering */
 math {
-  font-family: 'STIX Two Math', 'Cambria Math', 'Latin Modern Math', KaTeX_Main, serif;
+  font-family: "STIX Two Math", "Cambria Math", "Latin Modern Math", KaTeX_Main, serif;
   font-size: 1.05em;
   display: inline-block;
   vertical-align: middle;
@@ -44,5 +94,23 @@ math {
 .math-display {
   display: block;
   text-align: center;
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
 }
+
+/* Focus refinement matching landing ink */
+:focus-visible {
+  outline: 2px solid #111111;
+  outline-offset: 2px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+.font-sans {
+  font-family: var(--font-sans);
+}
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+

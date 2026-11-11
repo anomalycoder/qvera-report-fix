@@ -93,3 +93,34 @@ def test_api_audit_endpoints():
     assert logs[0]["report_id"] == "test_rep_1"
     assert logs[0]["action"] == "approve"
     assert logs[0]["applied_edit"]["replace"] == "B"
+
+
+from app.api.v1.endpoints.faculty import (
+    get_faculty_notifications,
+    mark_notification_read,
+    search_faculty_workspace,
+    trigger_live_notification_scan,
+)
+
+
+def test_api_search_and_notifications_endpoints():
+    # Live search matches report IDs, subjects, and returns clean structure
+    search_empty = search_faculty_workspace(q="", limit=5)
+    assert "reports" in search_empty
+    assert len(search_empty["reports"]) > 0
+
+    search_phys = search_faculty_workspace(q="Physics", limit=10)
+    assert search_phys["total"] > 0
+    assert any(r["subject"] == "Physics" for r in search_phys["reports"])
+
+    # Notifications seed, scan push, and read-state toggle
+    initial = get_faculty_notifications(limit=10)
+    assert len(initial["items"]) > 0
+
+    scan_res = trigger_live_notification_scan()
+    assert scan_res["status"] == "success"
+    new_notif = scan_res["notification"]
+
+    read_res = mark_notification_read(new_notif["id"])
+    assert read_res["status"] == "success"
+    assert read_res["unread_count"] == scan_res["unread_count"] - 1

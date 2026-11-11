@@ -31,6 +31,8 @@
     "diagram": 1,
     "answer_form": 1
   },
+  "ground_truth_accuracy": "Not evaluable locally (Acadza evaluates ground-truth labels externally during scoring)",
+  "safety_violations_detected": 0,
   "field_validations": {
     "reportId_valid": 44,
     "questionId_matched": 44,
@@ -38,6 +40,8 @@
     "repair_valid": 44,
     "confidence_valid": 44,
     "edits_permitted": 44,
-    "safety_checks_passed": 0
+    "routing_safety_valid": 44,
+    "student_reply_present": 44,
+    "evidence_present": 44
   }
 }

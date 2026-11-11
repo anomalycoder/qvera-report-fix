@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useMemo } from "react"
 import { AppLayout, type NavTab } from "@/layouts/AppLayout"
-import { OverviewPage } from "@/pages/OverviewPage"
+import { OverviewPage, type QueueNavigationPreset } from "@/pages/OverviewPage"
 import { ReviewQueuePage } from "@/pages/ReviewQueuePage"
-import { QuestionsPage } from "@/pages/QuestionsPage"
-import { ActivityPage } from "@/pages/ActivityPage"
-import { SettingsPage } from "@/pages/SettingsPage"
 import { ReviewWorkspacePage } from "@/pages/ReviewWorkspacePage"
+import { FacultyAnalyticsPage } from "@/pages/FacultyAnalyticsPage"
+import { AuditLedgerPage } from "@/pages/AuditLedgerPage"
+import { SettingsPage } from "@/pages/SettingsPage"
 import { LandingPage } from "@/pages/LandingPage"
 import { LoginPage } from "@/pages/LoginPage"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { AuthProvider, useAuth } from "@/context/AuthContext"
 import { Toaster, toast } from "sonner"
 
 function MainRouter() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout, updateProfile } = useAuth()
 
   // Track browser pathname
   const [currentPath, setCurrentPath] = useState<string>(() => {
     return window.location.pathname || "/"
   })
 
-  // Synchronize history state
+  // Synchronize history state and route aliases
   useEffect(() => {
     const handlePopState = () => {
       setCurrentPath(window.location.pathname || "/")
@@ -27,6 +28,26 @@ function MainRouter() {
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
   }, [])
+
+  // Support /faculty/* alias routes
+  useEffect(() => {
+    if (currentPath === "/faculty" || currentPath === "/faculty/dashboard") {
+      navigate("/dashboard")
+    } else if (currentPath === "/faculty/login") {
+      navigate("/login")
+    } else if (currentPath === "/faculty/reviews" || currentPath === "/faculty/queue") {
+      navigate("/dashboard/queue")
+    } else if (currentPath.startsWith("/faculty/investigation/")) {
+      const parts = currentPath.split("/faculty/investigation/")
+      if (parts[1] && parts[1].trim()) {
+        navigate(`/dashboard/workspace/${parts[1].trim()}`)
+      }
+    } else if (currentPath === "/faculty/analytics") {
+      navigate("/dashboard/analytics")
+    } else if (currentPath === "/faculty/audit") {
+      navigate("/dashboard/audit")
+    }
+  }, [currentPath])
 
   const navigate = (path: string) => {
     if (path !== currentPath) {
@@ -40,14 +61,15 @@ function MainRouter() {
   const [activeReportId, setActiveReportId] = useState<string>("R001")
   const [pendingCount, setPendingCount] = useState<number>(10)
   const [globalSearch, setGlobalSearch] = useState<string>("")
+  const [queuePreset, setQueuePreset] = useState<QueueNavigationPreset | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Derive active tab from URL path
   const currentTab: NavTab = useMemo(() => {
     if (currentPath.startsWith("/dashboard/workspace")) return "workspace"
     if (currentPath.startsWith("/dashboard/queue") || currentPath.startsWith("/dashboard/review")) return "queue"
-    if (currentPath.startsWith("/dashboard/questions")) return "questions"
-    if (currentPath.startsWith("/dashboard/activity")) return "activity"
+    if (currentPath.startsWith("/dashboard/analytics")) return "analytics"
+    if (currentPath.startsWith("/dashboard/audit")) return "audit"
     if (currentPath.startsWith("/dashboard/settings")) return "settings"
     return "overview"
   }, [currentPath])
@@ -86,6 +108,15 @@ function MainRouter() {
     }
   }, [currentPath, isAuthenticated])
 
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const onFacultyAction = () => {
+      refreshPendingCount()
+    }
+    window.addEventListener("qvera:faculty-action", onFacultyAction)
+    return () => window.removeEventListener("qvera:faculty-action", onFacultyAction)
+  }, [isAuthenticated])
+
   const handleSelectReport = (reportId: string) => {
     setActiveReportId(reportId)
     navigate(`/dashboard/workspace/${reportId}`)
@@ -103,7 +134,7 @@ function MainRouter() {
 
   const handleGlobalSearch = (val: string) => {
     setGlobalSearch(val)
-    if (val && currentTab !== "queue" && currentTab !== "questions") {
+    if (val && currentTab !== "queue") {
       navigate("/dashboard/queue")
     }
   }
@@ -116,7 +147,7 @@ function MainRouter() {
   const handleLogout = async () => {
     await logout()
     toast.info("Signed out from faculty console.")
-    navigate("/login")
+    navigate("/")
   }
 
   // Route 1: Public Landing Page
@@ -132,7 +163,6 @@ function MainRouter() {
 
   // Route 2: Login Page
   if (currentPath === "/login") {
-    // If already authenticated, redirect straight to dashboard
     if (isAuthenticated && !isLoading) {
       navigate("/dashboard")
       return null
@@ -147,16 +177,15 @@ function MainRouter() {
 
   // Route 3: Protected Faculty Dashboard (/dashboard/*)
   if (currentPath.startsWith("/dashboard")) {
-    // Loading splash screen while checking session
     if (isLoading) {
       return (
-        <div className="min-h-screen bg-[#0B0F19] flex items-center justify-center">
+        <div className="min-h-screen bg-[#F9F8F3] flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-600/30 animate-pulse">
-              A
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-              <div className="w-3.5 h-3.5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            <span className="font-display font-semibold text-[24px] tracking-tight text-[#111111]">
+              QVERA
+            </span>
+            <div className="flex items-center gap-2 text-xs text-[#666666] font-mono">
+              <div className="w-3.5 h-3.5 border-2 border-[#111111] border-t-transparent rounded-full animate-spin" />
               <span>Verifying faculty session...</span>
             </div>
           </div>
@@ -164,65 +193,80 @@ function MainRouter() {
       )
     }
 
-    // Protection Guard: If unauthenticated, redirect to /login
     if (!isAuthenticated) {
       navigate("/login")
       return null
     }
 
-    // Authenticated Dashboard Layout
     return (
       <AppLayout
         currentTab={currentTab}
         onTabChange={handleTabChange}
         pendingCount={pendingCount}
+        onPendingCountChange={setPendingCount}
         activeReportId={activeReportId}
+        onSelectReport={handleSelectReport}
         onSearchChange={handleGlobalSearch}
         searchValue={globalSearch}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
         userName={user?.name || "Dr. A. Sharma"}
-        userEmail={user?.email || "demo@acadza.local"}
+        userEmail={user?.email || "demo@qvera.local"}
+        userRole={user?.role || "faculty"}
+        onUpdateProfile={updateProfile}
         onLogout={handleLogout}
         onNavigateHome={() => navigate("/")}
       >
-        {currentTab === "overview" && (
-          <OverviewPage
-            onNavigateToWorkspace={handleSelectReport}
-            onNavigateToQueue={() => navigate("/dashboard/queue")}
-          />
-        )}
+        <ErrorBoundary fallbackTitle="Error loading dashboard view">
+          {currentTab === "overview" && (
+            <OverviewPage
+              onNavigateToWorkspace={handleSelectReport}
+              onNavigateToQueue={(preset) => {
+                setQueuePreset(preset || null)
+                navigate("/dashboard/queue")
+              }}
+              onNavigateToAudit={() => navigate("/dashboard/audit")}
+              onNavigateToSettings={() => navigate("/dashboard/settings")}
+            />
+          )}
 
-        {currentTab === "queue" && (
-          <ReviewQueuePage
-            onSelectReport={handleSelectReport}
-            initialSearch={globalSearch}
-          />
-        )}
+          {currentTab === "queue" && (
+            <ReviewQueuePage
+              onSelectReport={handleSelectReport}
+              initialSearch={globalSearch}
+              initialPreset={queuePreset}
+              facultyName={user?.name || "Dr. A. Sharma"}
+            />
+          )}
 
-        {currentTab === "questions" && (
-          <QuestionsPage
-            onInspectQuestionReports={handleSelectReport}
-          />
-        )}
+          {currentTab === "workspace" && (
+            <ReviewWorkspacePage
+              reportId={activeReportId}
+              onBackToQueue={() => navigate("/dashboard/queue")}
+              onSelectReport={handleSelectReport}
+              facultyName={user?.name || "Dr. A. Sharma"}
+            />
+          )}
 
-        {currentTab === "activity" && (
-          <ActivityPage onSelectReport={handleSelectReport} />
-        )}
+          {currentTab === "analytics" && (
+            <FacultyAnalyticsPage
+              onNavigateToQueue={(preset) => {
+                setQueuePreset(preset || null)
+                navigate("/dashboard/queue")
+              }}
+              onNavigateToWorkspace={handleSelectReport}
+            />
+          )}
 
-        {currentTab === "settings" && <SettingsPage />}
+          {currentTab === "audit" && <AuditLedgerPage />}
 
-        {currentTab === "workspace" && (
-          <ReviewWorkspacePage
-            reportId={activeReportId}
-            onBackToQueue={() => navigate("/dashboard/queue")}
-          />
-        )}
+          {currentTab === "settings" && <SettingsPage />}
+        </ErrorBoundary>
       </AppLayout>
     )
   }
 
-  // Fallback: If unknown path, route to home or dashboard
+  // Fallback
   if (isAuthenticated) {
     navigate("/dashboard")
   } else {
@@ -239,12 +283,13 @@ export default function App() {
         position="bottom-right"
         toastOptions={{
           style: {
-            background: "#ffffff",
-            color: "#111827",
-            border: "1px solid #E5E7EB",
-            fontSize: "13px",
+            background: "#FFFFFF",
+            color: "#111111",
+            border: "1px solid #C5C1B4",
+            borderRadius: "12px",
+            fontSize: "12px",
             fontWeight: "500",
-            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.08)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
           },
         }}
       />

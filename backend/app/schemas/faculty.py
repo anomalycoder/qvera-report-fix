@@ -5,9 +5,11 @@ from app.schemas.triage import ProposedEdit
 
 class FacultyActionRequest(BaseModel):
     faculty_id: Optional[str] = Field("faculty_1", description="Reviewer employee/faculty ID")
-    faculty_name: Optional[str] = Field("Dr. A. Sharma (Senior Physics Faculty)", description="Reviewer display name")
+    faculty_name: Optional[str] = Field("Dr. A. Sharma", description="Reviewer display name")
     notes: Optional[str] = Field(None, description="Faculty review rationale or escalation reason")
     custom_edit: Optional[ProposedEdit] = Field(None, description="Adjusted surgical edit if modified by faculty")
+    apply_to_question: bool = Field(False, description="Apply status update across all grouped reports for the same question")
+    expected_version: Optional[int] = Field(None, description="Optimistic concurrency version check for question record")
 
 
 class FacultyActionResponse(BaseModel):

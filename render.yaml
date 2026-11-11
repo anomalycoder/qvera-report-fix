@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: qvera-report-fix-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENV
+        value: production
+      - key: PROJECT_NAME
+        value: QVERA Report -> Fix Engine
+      - key: LLM_PROVIDER
+        value: provider_independent
+      - key: ALLOW_DEMO_AUTH
+        value: "true"
+      - key: CORS_ALLOW_ORIGIN_REGEX
+        value: "^https://.*\\.vercel\\.app$"

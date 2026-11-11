@@ -11,7 +11,7 @@ class DataFilesStatus(BaseModel):
 
 class HealthCheckResponse(BaseModel):
     status: str = "healthy"
-    service: str = "acadza-report-fix-backend"
+    service: str = "qvera-report-fix-backend"
     version: str = "1.0.0"
     environment: str = "development"
     database: str = "connected"

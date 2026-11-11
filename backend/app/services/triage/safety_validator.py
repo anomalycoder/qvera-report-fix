@@ -52,14 +52,17 @@ class SafetyValidator:
     @staticmethod
     def can_auto_apply(repair: Optional[str], confidence: float) -> bool:
         """Enforces that auto-apply is ONLY permitted when:
-        1. Repair is explicitly permitted in taxonomy (auto == true).
-        2. Confidence score is >= 0.90.
+        1. Repair exists and is active in taxonomy (active == true).
+        2. Repair explicitly permits auto-apply (auto == true).
+        3. Confidence score meets configured active taxonomy threshold.
         """
         if not repair:
             return False
+        if not taxonomy_service.is_repair_active(repair):
+            return False
         if not taxonomy_service.supports_auto_apply(repair):
             return False
-        if confidence < 0.90:
+        if confidence < taxonomy_service.get_confidence_floor():
             return False
         return True
 

@@ -9,10 +9,15 @@ from app.core.database import get_db_connection
 
 # Session duration in days
 SESSION_EXPIRE_DAYS = 7
-DEMO_EMAIL = "demo@acadza.local"
-DEMO_PASSWORD = "AcadzaDemo2026!"
+DEMO_EMAIL = "demo@qvera.local"
+DEMO_PASSWORD = "QveraDemo2026!"
 DEMO_NAME = "Dr. A. Sharma"
 DEMO_ROLE = "faculty"
+
+ADMIN_EMAIL = "admin@qvera.local"
+ADMIN_PASSWORD = "QveraAdmin2026!"
+ADMIN_NAME = "Admin A. Mehta"
+ADMIN_ROLE = "admin"
 
 
 def hash_password(password: str) -> str:
@@ -68,10 +73,22 @@ def init_auth_tables() -> None:
 
 
 def seed_demo_user() -> Dict[str, Any]:
-    """Seed the standard demo faculty user if it does not already exist."""
+    """Seed standard demo faculty user and taxonomy administrator account idempotently."""
     init_auth_tables()
     with get_db_connection() as conn:
         cursor = conn.cursor()
+        # Ensure administrator account exists cleanly for role-restricted taxonomy configuration
+        cursor.execute("SELECT id FROM users WHERE email = ?;", (ADMIN_EMAIL,))
+        if not cursor.fetchone():
+            cursor.execute(
+                """
+                INSERT INTO users (email, password_hash, name, role, avatar)
+                VALUES (?, ?, ?, ?, ?);
+                """,
+                (ADMIN_EMAIL, hash_password(ADMIN_PASSWORD), ADMIN_NAME, ADMIN_ROLE, None),
+            )
+            conn.commit()
+
         cursor.execute("SELECT id, email, name, role FROM users WHERE email = ?;", (DEMO_EMAIL,))
         existing = cursor.fetchone()
         if existing:

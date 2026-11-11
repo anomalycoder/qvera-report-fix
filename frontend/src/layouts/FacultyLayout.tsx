@@ -99,7 +99,7 @@ export const FacultyLayout: React.FC<FacultyLayoutProps> = ({
                 A
               </div>
               <div>
-                <span className="font-bold text-white text-sm tracking-tight">Acadza</span>
+                <span className="font-bold text-white text-sm tracking-tight">QVERA</span>
                 <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50">
                   Report → Fix
                 </span>
@@ -239,7 +239,7 @@ export const FacultyLayout: React.FC<FacultyLayoutProps> = ({
 
         {/* Footer */}
         <footer className="bg-white border-t border-slate-200 py-3 px-6 text-center text-xs text-slate-400">
-          Acadza Quality Assurance Platform &bull; Provider-Independent Architecture &bull; SymPy Math Verification
+          QVERA Quality Assurance Platform &bull; Provider-Independent Architecture &bull; SymPy Math Verification
         </footer>
       </div>
     </div>

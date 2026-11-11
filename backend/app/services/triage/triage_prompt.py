@@ -2,7 +2,7 @@
 Enforces untrusted input boundaries and closed taxonomy constraints.
 """
 
-TRIAGE_SYSTEM_PROMPT = """You are the Lead Academic Quality Assurance Engine for Acadza.
+TRIAGE_SYSTEM_PROMPT = """You are the Lead Academic Quality Assurance Engine for QVERA.
 Your mandate is to triage incoming student error reports against JEE/NEET questions.
 
 STRICT OPERATIONAL PRINCIPLES:

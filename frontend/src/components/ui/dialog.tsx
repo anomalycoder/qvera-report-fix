@@ -33,7 +33,7 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity animate-in fade-in"
+        className="fixed inset-0 bg-[#0B0F12]/40 backdrop-blur-[2px] transition-opacity animate-in fade-in"
         onClick={() => onOpenChange(false)}
       />
       {/* Content */}
@@ -49,7 +49,7 @@ const DialogContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "w-full rounded-lg border border-slate-200 bg-white p-5 shadow-lg animate-in zoom-in-95 duration-150 relative",
+      "w-full rounded-[20px] border-[1.5px] border-[#C5C1B4] bg-white p-6 shadow-xl animate-in zoom-in-95 duration-150 relative text-[#111111]",
       className
     )}
     {...props}
@@ -57,7 +57,7 @@ const DialogContent = React.forwardRef<
     {onClose && (
       <button
         onClick={onClose}
-        className="absolute right-3.5 top-3.5 rounded p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+        className="absolute right-4 top-4 rounded-[8px] p-1 text-[#666666] hover:text-[#111111] hover:bg-[#EFECE6] transition cursor-pointer"
       >
         <X className="h-4 w-4" />
         <span className="sr-only">Close</span>
@@ -85,7 +85,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h2
     ref={ref}
-    className={cn("text-sm font-semibold text-slate-900", className)}
+    className={cn("font-display text-base font-semibold text-[#111111] tracking-tight", className)}
     {...props}
   />
 ))
@@ -97,7 +97,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-xs text-slate-500", className)}
+    className={cn("text-xs text-[#666666] font-sans", className)}
     {...props}
   />
 ))
@@ -109,7 +109,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-5 pt-3 border-t border-slate-100",
+      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-5 pt-3 border-t border-[#EAE7DC]",
       className
     )}
     {...props}

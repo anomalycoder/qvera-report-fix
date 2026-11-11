@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import confetti from "canvas-confetti"
 import {
   ArrowLeft,
@@ -9,794 +9,936 @@ import {
   ShieldCheck,
   AlertTriangle,
   ChevronDown,
-  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Copy,
-  ExternalLink,
   MessageSquare,
   FileCheck2,
-  HelpCircle,
   Sparkles,
-  Layers,
   History as HistoryIcon,
-  RotateCw
+  RotateCw,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  MinusCircle,
+  Loader2,
+  RefreshCw,
 } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { MathContent } from "@/components/MathContent"
 import { toast } from "sonner"
 import type { ProposedEdit } from "@/types/triage"
 
 interface ReviewWorkspacePageProps {
   reportId: string
   onBackToQueue: () => void
+  onSelectReport?: (reportId: string) => void
+  facultyName?: string
+}
+
+function formatDateTime(ts?: string | null): string {
+  if (!ts) return "—"
+  const d = new Date(ts.includes("T") ? ts : `${ts.replace(" ", "T")}Z`)
+  if (Number.isNaN(d.getTime())) return ts
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
 export const ReviewWorkspacePage: React.FC<ReviewWorkspacePageProps> = ({
   reportId,
   onBackToQueue,
+  onSelectReport,
+  facultyName = "Dr. A. Sharma",
 }) => {
   const [data, setData] = useState<any>(null)
+  const [queueList, setQueueList] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [staleConflictBanner, setStaleConflictBanner] = useState(false)
+  const [sseLive, setSseLive] = useState(false)
 
-  // Modals & Collapsibles
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [isAdjustOpen, setIsAdjustOpen] = useState(false)
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false)
-  const [showOriginalSolution, setShowOriginalSolution] = useState(false)
+  // Progressive disclosure toggles
+  const [reportsExpanded, setReportsExpanded] = useState(true)
+  const [mathDetailsExpanded, setMathDetailsExpanded] = useState(false)
+  const [rawMetaExpanded, setRawMetaExpanded] = useState(false)
+  const [auditExpanded, setAuditExpanded] = useState(false)
+  const [showOriginalVersion, setShowOriginalVersion] = useState(false)
 
-  // Custom Edit & Action inputs
-  const [customEdit, setCustomEdit] = useState<ProposedEdit | null>(null)
-  const [actionNotes, setActionNotes] = useState("")
+  // Inline surgical edit & decision controls
+  const [isEditing, setIsEditing] = useState(false)
+  const [editField, setEditField] = useState<string>("answer")
+  const [editFind, setEditFind] = useState<string>("")
+  const [editReplace, setEditReplace] = useState<string>("")
+  const [facultyNotes, setFacultyNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedId, setCopiedId] = useState(false)
 
-  const fetchWorkspace = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/v1/faculty/review/${reportId}`)
-      if (!res.ok) throw new Error(`Report ${reportId} not found`)
-      const json = await res.json()
-      setData(json)
-      setCustomEdit(json.triage_recommendation?.edit || null)
-    } catch (err: any) {
-      setError(err.message || "Failed to load review workspace")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const fetchWorkspace = useCallback(
+    async (silent = false) => {
+      if (!silent) setIsLoading(true)
+      setError(null)
+      try {
+        const [reviewRes, queueRes] = await Promise.all([
+          fetch(`/api/v1/faculty/review/${reportId}`),
+          fetch("/api/v1/faculty/queue/grouped?limit=100"),
+        ])
+
+        if (!reviewRes.ok) throw new Error(`Investigation case '${reportId}' could not be loaded`)
+        const reviewJson = await reviewRes.json()
+        setData(reviewJson)
+        setStaleConflictBanner(false)
+
+        const tEdit = reviewJson.triage_recommendation?.edit
+        const permitted = reviewJson.taxonomy_rules?.fields || []
+        setEditField(tEdit?.field && permitted.includes(tEdit.field) ? tEdit.field : permitted[0] || "answer")
+        setEditFind(tEdit?.find || tEdit?.old_value || "")
+        setEditReplace(tEdit?.replace || tEdit?.new_value || "")
+
+        if (queueRes.ok) {
+          const qJson = await queueRes.json()
+          setQueueList(qJson.items || [])
+        }
+      } catch (err: any) {
+        if (!silent) setError(err.message || "Failed to load investigation workspace")
+      } finally {
+        if (!silent) setIsLoading(false)
+      }
+    },
+    [reportId]
+  )
 
   useEffect(() => {
-    fetchWorkspace()
-  }, [reportId])
+    setIsEditing(false)
+    setShowOriginalVersion(false)
+    setFacultyNotes("")
+    fetchWorkspace(false)
+  }, [fetchWorkspace])
 
-  // Safe data accessors
+  // Real-time synchronization via SSE: detects concurrent edits & incoming reports!
+  useEffect(() => {
+    let es: EventSource | null = null
+    if (typeof EventSource !== "undefined") {
+      es = new EventSource("/api/v1/faculty/notifications/stream")
+      es.onopen = () => setSseLive(true)
+      es.onerror = () => setSseLive(false)
+      es.addEventListener("queue_update", () => {
+        if (isEditing) {
+          setStaleConflictBanner(true)
+        } else {
+          fetchWorkspace(true)
+        }
+      })
+      es.addEventListener("taxonomy_update", () => {
+        if (isEditing) {
+          setStaleConflictBanner(true)
+        } else {
+          fetchWorkspace(true)
+        }
+      })
+    }
+    const onLocal = () => fetchWorkspace(true)
+    window.addEventListener("qvera:faculty-action", onLocal)
+    return () => {
+      if (es) es.close()
+      window.removeEventListener("qvera:faculty-action", onLocal)
+    }
+  }, [fetchWorkspace, isEditing])
+
   const report = data?.report || {}
-  const rawQ = data?.question?.raw || {}
-  const normQ = data?.question?.normalized || {}
+  const qData = data?.question || {}
+  const normQ = showOriginalVersion ? (qData.original_normalized || qData.normalized || {}) : (qData.normalized || {})
+  const rawQ = showOriginalVersion ? (qData.original || qData.raw || {}) : (qData.raw || {})
   const qid: string = report.questionId || rawQ._id || normQ.question_id || ""
-  const stemHtml: string = normQ.raw_question_html || rawQ.question || ""
-  const solutionHtml: string = normQ.raw_solution_html || rawQ.solution || ""
-  const storedAnswer: string = normQ.stored_answer || rawQ.answer || ""
-  const subject: string = normQ.subject || rawQ.subject || "Physics"
+  const questionVersion: number = qData.version ?? 1
+  const subject: string = normQ.subject || rawQ.subject || "General"
   const chapter: string = normQ.chapter || rawQ.chapter || ""
   const questionType: string = normQ.question_type || rawQ.questionType || "scq"
+  const storedAnswer: string = normQ.stored_answer || String(rawQ.answer || "")
+  const stemHtml: string = normQ.raw_stem_html || rawQ.question || ""
+  const solutionHtml: string = normQ.raw_solution_html || rawQ.solution || ""
+  const declaredImages: string[] = normQ.declared_question_images || []
   const solver = data?.solver_verification || {}
   const triage = data?.triage_recommendation || {}
-  const peerReports = data?.peer_reports || []
+  const peerReports: any[] = data?.peer_reports || []
   const reviewStatus: string = data?.review_status || "pending"
-  const auditHistory = data?.audit_history || []
+  const auditHistory: any[] = data?.audit_history || []
+  const taxonomyRules = data?.taxonomy_rules || null
+  const provenance: string = data?.analysis_provenance || "Deterministic SymPy CAS + closed taxonomy"
 
-  // Safe options array derivation
+  const permittedFields: string[] = taxonomyRules?.fields || []
+  const canEditFields = permittedFields.length > 0
+
+  // Queue navigation (strictly aligned with Question-Grouped Queue ordering!)
+  const currentIndex = queueList.findIndex(
+    (c) =>
+      c.question_id === qid ||
+      c.primary_report_id === reportId ||
+      c.associated_reports?.some((r: any) => r.report_id === reportId)
+  )
+  const prevCase = currentIndex > 0 ? queueList[currentIndex - 1] : null
+  const nextCase = currentIndex >= 0 && currentIndex < queueList.length - 1 ? queueList[currentIndex + 1] : null
+
   const optionsList = useMemo(() => {
-    const rawOpts = normQ.options
-    if (!rawOpts) return []
-    if (Array.isArray(rawOpts)) return rawOpts
-    return Object.entries(rawOpts).map(([k, v]: [string, any]) => ({
-      key: k,
-      label: v?.label || k,
-      text: v?.text || v?.raw_html || "",
-      is_blank: Boolean(v?.is_blank),
-    }))
+    const opts = normQ.options || {}
+    return ["A", "B", "C", "D"].map((key) => {
+      const opt = opts[key]
+      return {
+        key,
+        html: opt?.raw_html || "",
+        text: opt?.text || "",
+        isMissing: normQ.missing_options?.includes(key) ?? false,
+      }
+    })
   }, [normQ])
 
-  const activeEdit = customEdit || triage?.edit
+  const activeProposal: ProposedEdit | null = isEditing
+    ? {
+        field: editField as any,
+        operation: "replace",
+        find: editFind,
+        replace: editReplace,
+        old_value: editFind,
+        new_value: editReplace,
+      }
+    : triage.edit || null
 
-  const copyQid = () => {
-    if (qid) {
-      navigator.clipboard.writeText(qid)
-      setCopiedId(true)
-      setTimeout(() => setCopiedId(false), 2000)
-    }
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(qid)
+    setCopiedId(true)
+    toast.success(`Copied Question ID: ${qid}`)
+    setTimeout(() => setCopiedId(false), 1800)
   }
 
-  const handleApprove = async () => {
+  // Unified Action Dispatcher with Backend Validation, Conflict Detection (409) & Sync
+  const commitAction = async (
+    actionType: "approve" | "edit" | "reject" | "no_change" | "defer"
+  ) => {
+    if (isSubmitting) return
     setIsSubmitting(true)
+
+    let endpoint = `/api/v1/faculty/${actionType}/${reportId}`
+    if (actionType === "edit") endpoint = `/api/v1/faculty/approve/${reportId}`
+    if (actionType === "no_change") endpoint = `/api/v1/faculty/no-change/${reportId}`
+
+    const bodyPayload: any = {
+      faculty_name: facultyName,
+      notes: facultyNotes.trim() || undefined,
+      apply_to_question: true,
+      expected_version: questionVersion,
+    }
+
+    if (actionType === "edit") {
+      if (!editReplace.trim()) {
+        toast.error("Provide the replacement value before saving.")
+        setIsSubmitting(false)
+        return
+      }
+      bodyPayload.custom_edit = {
+        field: editField,
+        operation: "replace",
+        find: editFind,
+        replace: editReplace,
+        old_value: editFind,
+        new_value: editReplace,
+        reason: facultyNotes.trim() || "Manual faculty surgical correction",
+      }
+    }
+
     try {
-      const res = await fetch(`/api/v1/faculty/approve/${reportId}`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          faculty_id: "faculty_dr_a_sharma",
-          faculty_name: "Dr. A. Sharma",
-          notes: actionNotes || "Correction verified from first principles and authorized by faculty.",
-          custom_edit: customEdit,
-        }),
+        body: JSON.stringify(bodyPayload),
       })
+      const result = await res.json()
 
-      if (res.ok) {
-        setIsConfirmOpen(false)
-        try {
-          confetti({
-            particleCount: 60,
-            spread: 70,
-            origin: { y: 0.7 },
-            colors: ["#2563EB", "#10B981", "#3B82F6"],
-          })
-        } catch {
-          // ignore
-        }
-        toast.success("Correction approved and committed to SQLite audit ledger.")
-        fetchWorkspace()
-      } else {
-        const err = await res.json()
-        toast.error(err.detail || "Approval failed")
+      if (res.status === 409) {
+        setStaleConflictBanner(true)
+        throw new Error(result.detail || "Concurrent modification detected. Refresh latest before saving.")
       }
+      if (!res.ok) {
+        throw new Error(result.detail || `Operation failed (${res.status})`)
+      }
+
+      if (actionType === "approve" || actionType === "edit") {
+        confetti({ particleCount: 40, spread: 55, origin: { y: 0.8 } })
+      }
+      toast.success(result.message || `Recorded decision (#${result.log_id})`)
+      setIsEditing(false)
+      setFacultyNotes("")
+      setStaleConflictBanner(false)
+      window.dispatchEvent(new CustomEvent("qvera:faculty-action"))
+      await fetchWorkspace(true)
     } catch (err: any) {
-      toast.error(err.message || "Network error submitting approval")
+      toast.error(err.message || "Operation could not be completed")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleReject = async () => {
-    const reason = prompt(
-      "Enter rationale for rejecting student report:",
-      "Student derivation is mathematically flawed; stored answer verified correct."
-    )
-    if (reason === null) return
-
-    setIsSubmitting(true)
-    try {
-      const res = await fetch(`/api/v1/faculty/reject/${reportId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          faculty_id: "faculty_dr_a_sharma",
-          faculty_name: "Dr. A. Sharma",
-          notes: reason,
-        }),
-      })
-
-      if (res.ok) {
-        toast.success("Report rejected. Question integrity preserved.")
-        fetchWorkspace()
-      } else {
-        const err = await res.json()
-        toast.error(err.detail || "Rejection failed")
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Error rejecting report")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDefer = async () => {
-    const notes = prompt(
-      "Notes for specialist escalation:",
-      "Escalating to subject matter lead for curriculum ambiguity review."
-    )
-    if (notes === null) return
-
-    setIsSubmitting(true)
-    try {
-      const res = await fetch(`/api/v1/faculty/defer/${reportId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          faculty_id: "faculty_dr_a_sharma",
-          faculty_name: "Dr. A. Sharma",
-          notes: notes,
-        }),
-      })
-
-      if (res.ok) {
-        toast.info("Report deferred for specialist review.")
-        fetchWorkspace()
-      } else {
-        const err = await res.json()
-        toast.error(err.detail || "Deferral failed")
-      }
-    } catch (err: any) {
-      toast.error(err.message || "Error deferring report")
-    } finally {
-      setIsSubmitting(false)
+  const renderStatusBadge = (st: string) => {
+    switch (st) {
+      case "approved":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D] bg-[#ECFDF3] px-2.5 py-0.5 rounded-full border border-[#D1FADF]">
+            <CheckCircle2 className="w-3 h-3" />
+            Approved & Applied
+          </span>
+        )
+      case "rejected":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#B91C1C] bg-[#FEF2F2] px-2.5 py-0.5 rounded-full border border-[#FECACA]">
+            <XCircle className="w-3 h-3" />
+            Rejected
+          </span>
+        )
+      case "no_change":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#444444] bg-[#EFECE6] px-2.5 py-0.5 rounded-full border border-[#DFDBD0]">
+            <MinusCircle className="w-3 h-3" />
+            No Change
+          </span>
+        )
+      case "deferred":
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#B45309] bg-[#FFFBEB] px-2.5 py-0.5 rounded-full border border-[#FDE68A]">
+            <Clock className="w-3 h-3" />
+            Escalated
+          </span>
+        )
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#111111] bg-[#EFECE6] px-2.5 py-0.5 rounded-full border border-[#DFDBD0]">
+            <AlertCircle className="w-3 h-3" />
+            Pending Review
+          </span>
+        )
     }
   }
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-10 w-48 bg-white" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <Skeleton className="lg:col-span-7 h-[650px] bg-white rounded-lg border border-[#E5E7EB]" />
-          <Skeleton className="lg:col-span-5 h-[650px] bg-white rounded-lg border border-[#E5E7EB]" />
+      <div className="space-y-4 max-w-[1360px] mx-auto">
+        <Skeleton className="h-14 w-full bg-[#EAE7DC] rounded-[14px]" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <Skeleton className="h-[460px] bg-[#EFECE6] rounded-[16px]" />
+          <Skeleton className="h-[460px] bg-[#EFECE6] rounded-[16px]" />
         </div>
+        <Skeleton className="h-36 w-full bg-[#EFECE6] rounded-[16px]" />
       </div>
     )
   }
 
   if (error || !data) {
     return (
-      <div className="p-8 text-center bg-white rounded-lg border border-[#E5E7EB] shadow-xs">
-        <AlertTriangle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-        <h3 className="font-bold text-base text-[#111827]">Could Not Load Question Workspace</h3>
-        <p className="text-sm text-slate-500 mt-1 mb-4">{error || "Report details unavailable."}</p>
-        <Button size="sm" variant="outline" onClick={onBackToQueue}>
-          Return to Queue
-        </Button>
+      <div className="p-8 text-center bg-white rounded-[18px] border-[1.5px] border-[#C5C1B4] shadow-xs max-w-lg mx-auto my-12 space-y-4 font-sans">
+        <AlertCircle className="w-10 h-10 text-[#B91C1C] mx-auto" />
+        <h3 className="font-display text-base font-semibold text-[#111111]">Investigation Case Unavailable</h3>
+        <p className="text-xs text-[#666666]">{error || "Missing question or report record."}</p>
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={onBackToQueue}>
+            Back to Review Queue
+          </Button>
+          <Button size="sm" onClick={() => fetchWorkspace(false)}>
+            Retry
+          </Button>
+        </div>
       </div>
     )
   }
 
-  const formatIssueName = (repair?: string, verdict?: string) => {
-    if (repair === "answer_key") return "Answer Key Mismatch"
-    if (repair === "stem_data") return "Missing Numerical Stem Data"
-    if (repair === "option_repair") return "Option Defect / Missing Distractor"
-    if (repair === "solution_fix") return "Solution Calculation Defect"
-    if (repair === "diagram") return "Missing Diagram Reference"
-    if (repair === "identical_options") return "Duplicate Options"
-    if (repair === "type_mismatch") return "Question Type Mismatch"
-    if (repair === "markup_leak") return "Unrendered LaTeX Markup"
-    if (repair === "spelling") return "Typographical Error"
-    if (repair === "wrong_chapter") return "Wrong Chapter Tag"
-    if (repair === "syllabus") return "Syllabus Boundary Issue"
-    if (verdict === "no_error") return "No Defect (Student Misconception)"
-    return repair ? repair.replace(/_/g, " ") : verdict || "Reported Issue"
-  }
+  const solverVerified = solver?.verification_status === "verified_match" || solver?.verification_status === "mismatch"
 
   return (
-    <div className="space-y-6">
-      {/* Top Breadcrumb & Status Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white border border-[#E5E7EB] rounded-lg px-5 py-3 shadow-2xs">
-        <div className="flex items-center gap-3 text-sm">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBackToQueue}
-            className="h-8 px-2.5 text-sm text-slate-700 hover:text-slate-900 font-medium"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            Back to Queue
-          </Button>
-          <span className="text-slate-300">/</span>
-          <span className="font-mono font-bold text-[#111827] text-sm">
-            {report.reportId}
-          </span>
-          <span className="text-slate-300">/</span>
-          <span className={`text-xs font-bold uppercase px-2.5 py-0.5 rounded border ${
-            reviewStatus === "approved"
-              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
-              : reviewStatus === "rejected"
-              ? "bg-rose-50 text-rose-800 border-rose-200"
-              : reviewStatus === "deferred"
-              ? "bg-purple-50 text-purple-800 border-purple-200"
-              : "bg-amber-50 text-amber-800 border-amber-200"
-          }`}>
-            {reviewStatus}
-          </span>
-        </div>
-
-        {/* Question ID indicator with Copy button */}
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 font-mono">
-          <span>Question ID:</span>
-          <span className="font-bold text-[#111827]">
-            {qid ? `${qid.slice(0, 12)}...` : "N/A"}
-          </span>
+    <div className="space-y-4 max-w-[1360px] mx-auto font-sans">
+      {/* =====================================================================
+          CONFLICT DETECTION BANNER (SIMULTANEOUS FACULTY EDIT WARNING)
+      ===================================================================== */}
+      {staleConflictBanner && (
+        <div className="bg-[#FFFBEB] border-[1.5px] border-[#FDE68A] rounded-[12px] px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-[#92400E]">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            <span className="font-medium">
+              Another session updated this investigation or submitted a new report. Refresh latest before saving to avoid overwriting changes.
+            </span>
+          </div>
           <button
-            onClick={copyQid}
-            className="p-1 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition"
-            title="Copy Question ID"
+            type="button"
+            onClick={() => fetchWorkspace(false)}
+            className="h-7 px-3 rounded-[6px] bg-[#0B0F12] text-white font-medium inline-flex items-center gap-1.5 cursor-pointer"
           >
-            <Copy className="w-3.5 h-3.5" />
+            <RefreshCw className="w-3 h-3" />
+            <span>Refresh Latest</span>
           </button>
-          {copiedId && <span className="text-xs text-emerald-600 font-sans font-semibold">Copied!</span>}
         </div>
-      </div>
+      )}
 
-      {/* 2-Column Investigation Workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ======================================================== */}
-        {/* LEFT PANEL: ACADEMIC CONTENT (7 cols)                     */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-5">
-            {/* Subject, Chapter & Metadata Header */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <span className="px-2.5 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200 font-bold text-xs uppercase tracking-wide">
-                  {subject}
-                </span>
-                {chapter && (
-                  <span className="text-sm font-bold text-slate-900">
-                    {chapter}
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-slate-500 font-mono">
-                Type: <strong className="text-slate-800">{questionType}</strong> &bull; Difficulty: <strong className="text-slate-800">{rawQ.difficulty ?? 2}/3</strong>
-              </div>
-            </div>
+      {/* =====================================================================
+          AREA A: COMPACT INVESTIGATION HEADER
+      ===================================================================== */}
+      <header className="bg-white border-[1.5px] border-[#C5C1B4] rounded-[16px] px-4 sm:px-5 py-3.5 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 min-w-0">
+          <button
+            type="button"
+            onClick={onBackToQueue}
+            className="h-8 px-3 rounded-[8px] bg-[#F9F8F3] hover:bg-[#EFECE6] border border-[#DFDBD0] text-xs font-medium text-[#111111] inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Review Queue</span>
+          </button>
 
-            {/* Question Stem (Native MathML Rendering) */}
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                Question Stem
-              </span>
-              <div
-                className="text-sm sm:text-base text-slate-900 leading-relaxed font-sans select-text"
-                dangerouslySetInnerHTML={{ __html: stemHtml }}
-              />
-            </div>
-
-            {/* Options List for SCQ / MCQ */}
-            {optionsList.length > 0 && (
-              <div className="space-y-2.5 pt-3 border-t border-slate-100">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                  Options
-                </span>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {optionsList.map((opt) => {
-                    const isStored = String(storedAnswer || "").trim() === opt.key
-                    const isProposed =
-                      activeEdit?.field === "answer" &&
-                      String(activeEdit.replace || "").trim() === opt.key
-
-                    let borderStyle = "border-[#E5E7EB] bg-white"
-                    let badgeColor = "bg-slate-100 text-slate-800 border border-slate-200"
-
-                    if (isStored && isProposed) {
-                      borderStyle = "border-emerald-300 bg-emerald-50/40"
-                      badgeColor = "bg-emerald-600 text-white"
-                    } else if (isProposed) {
-                      borderStyle = "border-blue-400 bg-blue-50/50 ring-2 ring-blue-500/20"
-                      badgeColor = "bg-blue-600 text-white"
-                    } else if (isStored) {
-                      borderStyle = "border-rose-200 bg-rose-50/20"
-                      badgeColor = "bg-slate-800 text-white"
-                    }
-
-                    return (
-                      <div
-                        key={opt.key}
-                        className={`p-3.5 rounded-lg border text-sm flex items-start gap-3.5 transition-colors ${borderStyle}`}
-                      >
-                        <span
-                          className={`w-6 h-6 rounded flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5 ${badgeColor}`}
-                        >
-                          {opt.key}
-                        </span>
-
-                        <div className="flex-1 min-w-0">
-                          {opt.text ? (
-                            <div
-                              className="text-sm text-slate-900"
-                              dangerouslySetInnerHTML={{ __html: opt.text }}
-                            />
-                          ) : (
-                            <span className="text-slate-400 italic text-sm">
-                              [Option text blank or missing in source dataset]
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          {isStored && (
-                            <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                              Stored Key
-                            </span>
-                          )}
-                          {isProposed && (
-                            <span className="text-xs font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-200">
-                              Proposed Answer
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Integer Question Answer Display */}
-            {questionType === "integerQuestion" && (
-              <div className="p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm flex items-center justify-between">
-                <div>
-                  <span className="text-slate-500 block text-xs">Stored Numerical Key:</span>
-                  <span className="text-xl font-mono font-extrabold text-[#111827]">
-                    {storedAnswer || "N/A"}
-                  </span>
-                </div>
-                {activeEdit?.field === "answer" && (
-                  <div className="text-right">
-                    <span className="text-blue-600 block text-xs font-bold">Proposed Correction:</span>
-                    <span className="text-xl font-mono font-extrabold text-blue-700">
-                      {activeEdit.replace}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Collapsible Original Solution */}
-            {solutionHtml && (
-              <div className="pt-3 border-t border-slate-100">
-                <button
-                  onClick={() => setShowOriginalSolution(!showOriginalSolution)}
-                  className="flex items-center justify-between w-full text-left text-sm font-bold text-slate-800 hover:text-slate-900 py-1"
-                >
-                  <span>Original Solution & Explanation</span>
-                  {showOriginalSolution ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-                {showOriginalSolution && (
-                  <div
-                    className="mt-3 p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm text-slate-800 leading-relaxed max-h-52 overflow-y-auto"
-                    dangerouslySetInnerHTML={{ __html: solutionHtml }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Student Report History */}
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#111827]">
-                <MessageSquare className="w-4 h-4 text-slate-500" />
-                <span>Student Report History ({peerReports.length})</span>
-              </div>
-              {peerReports.length > 1 && (
-                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded border border-rose-200">
-                  Multiple Student Consensus ({peerReports.length} reports)
-                </span>
-              )}
-            </div>
-
-            <div className="space-y-2.5">
-              {peerReports.map((p: any) => (
-                <div
-                  key={p.reportId}
-                  className={`p-3.5 rounded-lg border text-sm ${
-                    p.reportId === report.reportId ? "bg-blue-50/40 border-blue-200" : "bg-slate-50/60 border-[#E5E7EB]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-                    <span className="font-mono font-bold text-slate-800">
-                      Report {p.reportId} &bull; {p.source?.toUpperCase() || "WEB"}
-                    </span>
-                    <span className="font-mono">{p.reportedAt ? new Date(p.reportedAt).toLocaleDateString() : "Recent"}</span>
-                  </div>
-                  <p className="text-slate-900 text-sm italic">
-                    "{p.comment || "No written comment provided."}"
-                  </p>
-                </div>
-              ))}
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-[13px] font-semibold text-[#111111]">{qid}</span>
+            <button
+              type="button"
+              onClick={handleCopyId}
+              className="text-[#777777] hover:text-[#111111] p-1 rounded cursor-pointer"
+              title="Copy full Question ID"
+            >
+              {copiedId ? <Check className="w-3.5 h-3.5 text-[#16A34A]" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+            <span className="text-[12px] text-[#666666]">
+              {subject} {chapter ? `· ${chapter}` : ""}
+            </span>
+            {renderStatusBadge(reviewStatus)}
+            <span className="font-mono text-[11px] px-2 py-0.5 rounded-full bg-[#EFECE6] border border-[#DFDBD0] text-[#111111]">
+              {peerReports.length} {peerReports.length === 1 ? "report" : "reports"}
+            </span>
           </div>
         </div>
 
-        {/* ======================================================== */}
-        {/* RIGHT PANEL: REVIEW DECISION & ACTIONS (5 cols)           */}
-        {/* ======================================================== */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="bg-white border border-[#E5E7EB] rounded-lg p-6 shadow-2xs space-y-5">
-            {/* 1. Issue Summary & Classification */}
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1.5">
-                Issue Classification
-              </span>
-              <div className="flex items-center gap-2.5">
-                <span className="text-base font-extrabold text-[#111827]">
-                  {formatIssueName(triage?.repair, triage?.verdict)}
-                </span>
-                <span className={`text-xs font-bold uppercase px-2 py-0.5 rounded border ${
-                  triage?.verdict === "defect"
-                    ? "bg-rose-50 text-rose-700 border-rose-200"
-                    : "bg-slate-100 text-slate-700 border-slate-200"
-                }`}>
-                  {triage?.verdict || "defect"}
+        <div className="flex items-center gap-2.5 text-[11.5px]">
+          <span className="hidden xl:inline font-mono text-[#666666]">
+            v{questionVersion} · Tax v{data?.taxonomy_version ?? data?.active_taxonomy_version ?? 1} · Updated{" "}
+            {formatDateTime(qData.updated_at || report.reportedAt)}
+          </span>
+          <span
+            className={`inline-flex items-center gap-1 font-mono text-[10.5px] px-2 py-0.5 rounded-full border ${
+              sseLive ? "bg-[#ECFDF3] text-[#15803D] border-[#D1FADF]" : "bg-[#F9F8F3] text-[#666666] border-[#DFDBD0]"
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${sseLive ? "bg-[#16A34A] animate-pulse" : "bg-[#888888]"}`} />
+            Live
+          </span>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={!prevCase}
+              onClick={() => prevCase && onSelectReport?.(prevCase.primary_report_id)}
+              className="h-8 px-2.5 rounded-[8px] bg-white hover:bg-[#FAF9F5] border border-[#DFDBD0] text-xs font-medium text-[#111111] disabled:opacity-40 cursor-pointer inline-flex items-center gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Previous</span>
+            </button>
+            <button
+              type="button"
+              disabled={!nextCase}
+              onClick={() => nextCase && onSelectReport?.(nextCase.primary_report_id)}
+              className="h-8 px-2.5 rounded-[8px] bg-white hover:bg-[#FAF9F5] border border-[#DFDBD0] text-xs font-medium text-[#111111] disabled:opacity-40 cursor-pointer inline-flex items-center gap-1"
+            >
+              <span className="hidden sm:inline">Next</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* =====================================================================
+          AREA B: 2-COLUMN WORKSPACE (LEFT: ORIGINAL QUESTION | RIGHT: AI INVESTIGATION)
+      ===================================================================== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        {/* LEFT COLUMN: ORIGINAL QUESTION + COLLAPSIBLE STUDENT REPORTS */}
+        <div className="space-y-4">
+          <section className="bg-white border-[1.5px] border-[#C5C1B4] rounded-[16px] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E2D9]">
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-[17px] font-[425] text-[#111111]">
+                  Original Question
+                </h2>
+                <span className="font-mono text-[10.5px] uppercase px-2 py-0.5 rounded bg-[#EFECE6] border border-[#DFDBD0] text-[#111111]">
+                  {questionType}
                 </span>
               </div>
-            </div>
 
-            {/* 2. Independent Verification Result */}
-            <div className="p-4 rounded-lg bg-slate-50 border border-[#E5E7EB] space-y-2.5">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-bold text-slate-800">Verification Result</span>
-                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  {solver?.verification_status === "verified" || solver?.verification_status === "mismatch"
-                    ? "Confirmed"
-                    : "Review Needed"}
-                </span>
-              </div>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-                {solver?.reasoning_steps?.[0] ||
-                  triage?.evidence ||
-                  "Independent verification derived from question stem formulas and physical laws."}
-              </p>
-              {solver?.derived_answer && (
-                <div className="text-xs pt-2 border-t border-slate-200 font-mono text-slate-700">
-                  Independently derived answer: <strong className="text-[#111827] font-extrabold">{solver.derived_answer}</strong>
-                </div>
-              )}
-            </div>
-
-            {/* 3. Proposed Correction (Clean Before/After Diff) */}
-            {activeEdit ? (
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Proposed Correction
-                  </span>
+              <div className="flex items-center gap-2">
+                {questionVersion > 1 && (
                   <button
-                    onClick={() => setIsAdjustOpen(true)}
-                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-bold"
+                    type="button"
+                    onClick={() => setShowOriginalVersion((v) => !v)}
+                    className="text-[11px] font-mono px-2 py-0.5 rounded border border-[#DFDBD0] bg-[#F9F8F3] hover:bg-[#EFECE6] text-[#111111] cursor-pointer"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    Adjust patch
+                    {showOriginalVersion ? "Viewing Unmodified Seed" : `Viewing v${questionVersion} · Compare Original`}
                   </button>
-                </div>
+                )}
+                <span className="font-mono text-[11.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F9F8F3] border border-[#DFDBD0] text-[#111111]">
+                  Key: {storedAnswer || "—"}
+                </span>
+              </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/40">
-                    <span className="text-xs font-bold text-rose-700 block mb-1">
-                      Original ({activeEdit.field})
-                    </span>
-                    <div className="font-mono text-sm text-rose-950 font-bold break-all">
-                      {String(activeEdit.find ?? activeEdit.old_value ?? "Current")}
-                    </div>
-                  </div>
+            {/* Question Stem & Images (HTML + Inline MathML Preserved!) */}
+            <div className="text-[14px] text-[#111111] leading-relaxed">
+              <MathContent content={stemHtml || "No question text available."} />
+            </div>
 
-                  <div className="p-3.5 rounded-lg border border-emerald-200 bg-emerald-50/40">
-                    <span className="text-xs font-bold text-emerald-700 block mb-1">
-                      Proposed ({activeEdit.field})
-                    </span>
-                    <div className="font-mono text-sm text-emerald-950 font-bold break-all">
-                      {String(activeEdit.replace ?? activeEdit.new_value ?? "Corrected")}
-                    </div>
-                  </div>
-                </div>
+            {declaredImages.length > 0 && (
+              <div className="space-y-2 pt-1">
+                {declaredImages.map((imgUrl, idx) => (
+                  <img
+                    key={idx}
+                    src={imgUrl}
+                    alt={`Question figure ${idx + 1}`}
+                    className="max-h-56 rounded-[10px] border border-[#E5E2D9] object-contain bg-[#F9F8F3] p-2"
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Options (SCQ / MCQ) or Numerical Key Box */}
+            {questionType === "integer" ? (
+              <div className="p-3 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] text-[12.5px] flex items-center justify-between">
+                <span className="text-[#666666] font-medium">Integer Answer Schema</span>
+                <span className="font-mono font-semibold text-[#111111]">{storedAnswer || "—"}</span>
               </div>
             ) : (
-              <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-lg text-sm text-slate-600">
-                No content mutation proposed (report classified as {triage?.verdict || "no_error"}).
+              <div className="space-y-2 pt-1">
+                {optionsList.map((opt) => {
+                  const isCorrectKey = String(storedAnswer).toUpperCase().includes(opt.key)
+                  return (
+                    <div
+                      key={opt.key}
+                      className={`p-3 rounded-[10px] border text-[13px] flex items-start gap-2.5 ${
+                        opt.isMissing
+                          ? "bg-[#FEF2F2]/60 border-[#FECACA]"
+                          : isCorrectKey
+                          ? "bg-[#ECFDF3]/70 border-[#BBF7D0]"
+                          : "bg-[#F9F8F3] border-[#E5E2D9]"
+                      }`}
+                    >
+                      <span className="font-mono font-semibold text-[#111111] shrink-0">({opt.key})</span>
+                      {opt.isMissing ? (
+                        <span className="text-[12px] text-[#B91C1C] font-medium">
+                          Missing option detected in HTML structure
+                        </span>
+                      ) : (
+                        <div className="min-w-0 flex-1">
+                          <MathContent content={opt.html || opt.text || ""} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
 
-            {/* 4. Student Reply Draft Preview */}
-            {triage?.student_reply && (
-              <div className="space-y-1.5 pt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 block">
-                  Student Reply Draft
-                </span>
-                <div className="p-3.5 bg-slate-50 rounded-lg border border-[#E5E7EB] text-sm text-slate-800 leading-relaxed italic">
-                  "{triage.student_reply}"
+            {/* Stored Solution Preview */}
+            {solutionHtml && (
+              <details className="pt-2 border-t border-[#F0EEE6] text-[12.5px]">
+                <summary className="cursor-pointer font-medium text-[#555555] hover:text-[#111111]">
+                  Stored Official Solution
+                </summary>
+                <div className="mt-2 p-3 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] leading-relaxed">
+                  <MathContent content={solutionHtml} />
                 </div>
+              </details>
+            )}
+          </section>
+
+          {/* COLLAPSIBLE STUDENT REPORTS SECTION */}
+          <section className="bg-white border-[1.5px] border-[#C5C1B4] rounded-[16px] shadow-xs overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setReportsExpanded((v) => !v)}
+              className="w-full px-5 py-3.5 bg-[#FAF9F5] hover:bg-[#EFECE6]/70 flex items-center justify-between text-left cursor-pointer transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-[#555555]" />
+                <span className="font-display text-[15px] font-[425] text-[#111111]">
+                  Student Reports ({peerReports.length})
+                </span>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-[#666666] transition-transform ${reportsExpanded ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {reportsExpanded && (
+              <div className="p-4 space-y-2.5 border-t border-[#E5E2D9]">
+                {peerReports.map((pr: any) => (
+                  <div
+                    key={pr.reportId}
+                    onClick={() => pr.reportId !== reportId && onSelectReport?.(pr.reportId)}
+                    className={`p-3 rounded-[10px] border text-[12.5px] space-y-1 ${
+                      pr.reportId === reportId
+                        ? "bg-[#EAE7DC]/55 border-[#C5C1B4]"
+                        : "bg-[#F9F8F3] border-[#E2DFD6] cursor-pointer hover:bg-[#EFECE6]/70"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-mono text-[#666666]">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-[#111111]">{pr.reportId}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-white border border-[#DFDBD0] uppercase">
+                          {pr.source || "web"}
+                        </span>
+                      </div>
+                      <span>{formatDateTime(pr.reportedAt)}</span>
+                    </div>
+                    <p className="text-[#111111]">"{pr.comment || "No comment provided"}"</p>
+                  </div>
+                ))}
               </div>
             )}
+          </section>
+        </div>
 
-            {/* 5. Collapsible Technical Details */}
-            <div className="border-t border-slate-100 pt-3">
-              <button
-                onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-                className="w-full flex items-center justify-between text-xs text-slate-500 hover:text-slate-900 py-1 font-medium"
-              >
-                <span>Technical details & solver diagnostics</span>
-                {showTechnicalDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
+        {/* RIGHT COLUMN: AI INVESTIGATION & MATHEMATICAL VERIFICATION */}
+        <div className="space-y-4">
+          <section className="bg-white border-[1.5px] border-[#C5C1B4] rounded-[16px] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E2D9]">
+              <h2 className="font-display text-[17px] font-[425] text-[#111111]">
+                AI Investigation
+              </h2>
+              <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-[#EFECE6] border border-[#DFDBD0] text-[#111111]">
+                Confidence: {triage.confidence ? `${Math.round(triage.confidence * 100)}%` : "Pending"}
+              </span>
+            </div>
 
-              {showTechnicalDetails && (
-                <div className="mt-2.5 p-3.5 bg-slate-50 rounded-lg border border-[#E5E7EB] text-xs space-y-2 font-mono text-slate-700 overflow-x-auto">
-                  <div>Routing Gate: <strong className="text-slate-900">{triage?.route || "faculty_review"}</strong></div>
-                  <div>Taxonomy Repair: <strong className="text-slate-900">{triage?.repair || "N/A"}</strong></div>
-                  <div>SymPy Engine Status: <strong className="text-slate-900">{solver?.verification_status || "mismatch"}</strong></div>
-                  {solver?.reasoning_steps && solver.reasoning_steps.length > 1 && (
-                    <div className="pt-2 text-xs text-slate-600 border-t border-slate-200 space-y-1">
-                      <span className="font-sans font-bold text-slate-700 block text-[11px] uppercase">Reasoning Steps:</span>
-                      {solver.reasoning_steps.map((st: string, idx: number) => (
-                        <div key={idx} className="font-sans">&bull; {st}</div>
-                      ))}
+            {!triage.verdict ? (
+              <div className="p-6 text-center rounded-[12px] bg-[#F9F8F3] border border-[#E5E2D9] space-y-1.5">
+                <Clock className="w-5 h-5 mx-auto text-[#777777]" />
+                <p className="text-[13px] font-medium text-[#111111]">AI investigation pending</p>
+                <p className="text-[12px] text-[#666666]">No automated classification generated yet for this report.</p>
+              </div>
+            ) : (
+              <>
+                {/* 3 Independent Decisions */}
+                <div className="grid grid-cols-3 gap-2.5 text-[12px]">
+                  <div className="p-3 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] space-y-1">
+                    <span className="font-mono text-[10px] uppercase text-[#666666] block">1. Verdict</span>
+                    <span className="font-mono font-semibold text-[#111111]">{triage.verdict}</span>
+                  </div>
+                  <div className="p-3 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] space-y-1">
+                    <span className="font-mono text-[10px] uppercase text-[#666666] block">2. Repair</span>
+                    <span className="font-mono font-semibold text-[#111111]">{triage.repair || "none"}</span>
+                  </div>
+                  <div className="p-3 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] space-y-1">
+                    <span className="font-mono text-[10px] uppercase text-[#666666] block">3. Route</span>
+                    <span className="font-mono font-semibold text-[#111111]">{triage.route}</span>
+                  </div>
+                </div>
+
+                {/* Explanation & Supporting Evidence */}
+                <div className="space-y-2">
+                  <div className="text-[11px] font-mono uppercase tracking-wider text-[#666666]">
+                    Supporting Evidence
+                  </div>
+                  <div className="p-3.5 rounded-[10px] bg-[#F9F8F3] border border-[#E2DFD6] text-[13px] text-[#222222] leading-relaxed">
+                    {triage.evidence}
+                  </div>
+                </div>
+
+                {/* Safety & Taxonomy Permission Scope */}
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                  {triage.safety_checks?.prompt_injection_detected && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#FEF2F2] text-[#B91C1C] border border-[#FECACA]">
+                      Prompt Injection Neutralized
+                    </span>
+                  )}
+                  {taxonomyRules && (
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full border ${
+                        taxonomyRules.auto
+                          ? "bg-[#ECFDF3] text-[#15803D] border-[#D1FADF]"
+                          : "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]"
+                      }`}
+                    >
+                      {taxonomyRules.auto
+                        ? `auto: true · fields: [${taxonomyRules.fields.join(", ")}]`
+                        : "auto: false · Faculty Approval Required"}
+                    </span>
+                  )}
+                </div>
+
+                {/* Mathematical Verification (Expandable, Honest Provenance Only!) */}
+                <div className="border border-[#E5E2D9] rounded-[10px] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setMathDetailsExpanded((v) => !v)}
+                    className="w-full px-3.5 py-2.5 bg-[#FAF9F5] flex items-center justify-between text-[12px] font-medium text-[#111111] cursor-pointer"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="w-3.5 h-3.5 text-[#555555]" />
+                      <span>
+                        Mathematical Verification:{" "}
+                        <strong className="font-mono">
+                          {solverVerified ? solver.verification_status : "Requires Faculty Validation"}
+                        </strong>
+                      </span>
+                    </span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-[#666666] transition-transform ${
+                        mathDetailsExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {mathDetailsExpanded && (
+                    <div className="p-3.5 bg-white border-t border-[#E5E2D9] text-[12px] text-[#444444] space-y-1.5">
+                      <div>
+                        <span className="font-semibold text-[#111111]">Provenance: </span>
+                        {provenance}
+                      </div>
+                      {solver.computed_answer && (
+                        <div>
+                          <span className="font-semibold text-[#111111]">Solver Computed Answer: </span>
+                          <span className="font-mono">{String(solver.computed_answer)}</span>
+                        </div>
+                      )}
+                      {solver.notes && <p>{solver.notes}</p>}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* 6. Faculty Action Controls */}
-            <div className="pt-4 border-t border-slate-100 space-y-3">
-              <Button
-                variant="primary"
-                onClick={() => setIsConfirmOpen(true)}
-                disabled={isSubmitting || reviewStatus === "approved"}
-                className="w-full text-sm font-bold h-10 bg-blue-600 hover:bg-blue-700 text-white shadow-xs"
-              >
-                <Check className="w-4 h-4 mr-2" />
-                {reviewStatus === "approved" ? "Correction Already Approved" : "Approve Correction"}
-              </Button>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  variant="outline"
-                  onClick={handleReject}
-                  disabled={isSubmitting}
-                  className="text-xs sm:text-sm text-rose-700 hover:bg-rose-50 hover:text-rose-800 h-9 border-[#E5E7EB] font-semibold"
-                >
-                  <X className="w-4 h-4 mr-1.5" />
-                  Reject
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={handleDefer}
-                  disabled={isSubmitting}
-                  className="text-xs sm:text-sm text-slate-700 hover:bg-slate-50 h-9 border-[#E5E7EB] font-semibold"
-                >
-                  <Clock className="w-4 h-4 mr-1.5" />
-                  Defer / Escalate
-                </Button>
-              </div>
-            </div>
-          </div>
+                {/* Collapsible Raw Metadata */}
+                <div className="border border-[#E5E2D9] rounded-[10px] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setRawMetaExpanded((v) => !v)}
+                    className="w-full px-3.5 py-2 bg-[#FAF9F5] flex items-center justify-between text-[11.5px] font-mono text-[#666666] cursor-pointer"
+                  >
+                    <span>Student Reply Draft & Raw Metadata</span>
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 transition-transform ${rawMetaExpanded ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {rawMetaExpanded && (
+                    <div className="p-3 bg-white border-t border-[#E5E2D9] text-[12px] text-[#555555] space-y-1.5">
+                      <p>
+                        <strong className="text-[#111111]">Draft Reply:</strong> {triage.student_reply}
+                      </p>
+                      <p className="font-mono text-[11px]">
+                        Report: {report.reportId} · Student: {report.studentId} · Taxonomy Label: {taxonomyRules?.label || "N/A"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </section>
         </div>
       </div>
 
-      {/* Confirmation Dialog on Approval */}
-      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent onClose={() => setIsConfirmOpen(false)}>
-          <DialogHeader>
-            <DialogTitle>Confirm Question Correction</DialogTitle>
-            <DialogDescription>
-              Authorizing this correction will update the stored record and append an immutable entry to the SQLite audit ledger.
-            </DialogDescription>
-          </DialogHeader>
+      {/* =====================================================================
+          AREA C: PROPOSED CORRECTION BEFORE/AFTER DIFF + SIMPLE ACTION BAR
+      ===================================================================== */}
+      <section className="bg-white border-[1.5px] border-[#C5C1B4] rounded-[16px] p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E2D9]">
+          <div className="flex items-center gap-2">
+            <FileCheck2 className="w-4.5 h-4.5 text-[#111111]" />
+            <h2 className="font-display text-[17px] font-[425] text-[#111111]">
+              Correction & Decision
+            </h2>
+          </div>
+          {activeProposal && (
+            <span className="font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-[#EFECE6] border border-[#DFDBD0] text-[#111111]">
+              Target Field: {activeProposal.field}
+            </span>
+          )}
+        </div>
 
-          <div className="space-y-4 text-sm my-3">
-            <div className="p-4 bg-slate-50 rounded-lg border border-[#E5E7EB] space-y-2.5">
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Target Field:</span>
-                <span className="font-mono font-bold text-slate-900">{activeEdit?.field || "answer"}</span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Original Value:</span>
-                <span className="font-mono text-rose-700 font-bold">{String(activeEdit?.find ?? storedAnswer ?? "N/A")}</span>
-              </div>
-              <div className="flex justify-between text-slate-700">
-                <span className="font-medium">Corrected Value:</span>
-                <span className="font-mono text-emerald-700 font-bold">{String(activeEdit?.replace ?? "N/A")}</span>
+        {/* Before / After Diff */}
+        {activeProposal ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12.5px]">
+            <div className="p-3.5 rounded-[12px] bg-[#FEF2F2]/60 border border-[#FECACA] space-y-1">
+              <span className="font-mono text-[10.5px] uppercase text-[#B91C1C]">Before (Stored Content)</span>
+              <div className="font-mono text-[#111111] break-words">
+                {activeProposal.old_value || activeProposal.find || "—"}
               </div>
             </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Reviewer Notes (Optional):</label>
-              <input
-                type="text"
-                value={actionNotes}
-                onChange={(e) => setActionNotes(e.target.value)}
-                placeholder="e.g. Verified SymPy phasor proof, approved."
-                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white"
-              />
+            <div className="p-3.5 rounded-[12px] bg-[#ECFDF3]/70 border border-[#BBF7D0] space-y-1">
+              <span className="font-mono text-[10.5px] uppercase text-[#15803D]">After (Proposed Change)</span>
+              <div className="font-mono font-semibold text-[#111111] break-words">
+                {activeProposal.new_value || activeProposal.replace || "—"}
+              </div>
             </div>
           </div>
+        ) : (
+          <div className="p-3.5 rounded-[12px] bg-[#F9F8F3] border border-[#E2DFD6] text-[12.5px] text-[#555555]">
+            No automated field patch proposed for this investigation. Record a faculty decision below.
+          </div>
+        )}
 
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setIsConfirmOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleApprove}
-              disabled={isSubmitting}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
-            >
-              {isSubmitting ? "Committing..." : "Authorize Correction"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Adjust Patch Dialog */}
-      <Dialog open={isAdjustOpen} onOpenChange={setIsAdjustOpen}>
-        <DialogContent onClose={() => setIsAdjustOpen(false)}>
-          <DialogHeader>
-            <DialogTitle>Adjust Surgical Patch</DialogTitle>
-            <DialogDescription>
-              Fine-tune the proposed replacement token before committing.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 text-sm my-3">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Target Field:</label>
-              <select
-                value={customEdit?.field || "answer"}
-                onChange={(e) =>
-                  setCustomEdit((prev) => ({
-                    field: e.target.value,
-                    find: prev?.find ?? "",
-                    replace: prev?.replace ?? "",
-                  }))
-                }
-                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900 font-medium"
+        {/* Progressive-Disclosure Surgical Editor (Shown ONLY after clicking Edit Correction) */}
+        {isEditing && (
+          <div className="p-4 rounded-[12px] bg-[#F9F8F3] border border-[#C5C1B4] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[12.5px] font-semibold text-[#111111]">
+                Surgical Field Editor (Restricted to Permitted Taxonomy Fields)
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-xs text-[#666666] hover:text-[#111111] cursor-pointer"
               >
-                <option value="answer">answer (Answer Key)</option>
-                <option value="solution">solution (Explanation Text)</option>
-                <option value="question">question (Stem Text)</option>
-              </select>
+                Cancel Edit
+              </button>
             </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Target to Find:</label>
-              <input
-                type="text"
-                value={String(customEdit?.find ?? "")}
-                onChange={(e) =>
-                  setCustomEdit((prev) => ({
-                    field: prev?.field || "answer",
-                    find: e.target.value,
-                    replace: prev?.replace ?? "",
-                  }))
-                }
-                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Replacement Value:</label>
-              <input
-                type="text"
-                value={String(customEdit?.replace ?? "")}
-                onChange={(e) =>
-                  setCustomEdit((prev) => ({
-                    field: prev?.field || "answer",
-                    find: prev?.find ?? "",
-                    replace: e.target.value,
-                  }))
-                }
-                className="w-full text-sm bg-slate-50 border border-[#E5E7EB] rounded-md px-3 py-2 text-slate-900"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[12px]">
+              <div>
+                <label className="block text-[11px] text-[#666666] mb-1">Permitted Field</label>
+                <select
+                  value={editField}
+                  onChange={(e) => setEditField(e.target.value)}
+                  className="w-full h-9 px-2.5 rounded-[8px] bg-white border border-[#C5C1B4] font-mono"
+                >
+                  {permittedFields.map((f) => (
+                    <option key={f} value={f}>
+                      {f}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#666666] mb-1">Find / Original</label>
+                <input
+                  type="text"
+                  value={editFind}
+                  onChange={(e) => setEditFind(e.target.value)}
+                  className="w-full h-9 px-2.5 rounded-[8px] bg-white border border-[#C5C1B4] font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] text-[#666666] mb-1">Corrected Value</label>
+                <input
+                  type="text"
+                  value={editReplace}
+                  onChange={(e) => setEditReplace(e.target.value)}
+                  className="w-full h-9 px-2.5 rounded-[8px] bg-white border border-[#111111] font-mono"
+                  placeholder={questionType === "scq" ? "e.g. A" : "Replacement text..."}
+                />
+              </div>
             </div>
           </div>
+        )}
 
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setIsAdjustOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => {
-                setIsAdjustOpen(false)
-                toast.success("Custom patch updated.")
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+        {/* Rationale Note + Compact Action Row */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+          <input
+            type="text"
+            value={facultyNotes}
+            onChange={(e) => setFacultyNotes(e.target.value)}
+            placeholder="Optional review note (recorded in append-only Audit Ledger)..."
+            className="flex-1 h-9 px-3 rounded-[8px] bg-[#F9F8F3] border border-[#DFDBD0] text-[12.5px] text-[#111111] placeholder:text-[#888888] focus:outline-none focus:ring-1 focus:ring-[#111111]"
+          />
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {isEditing ? (
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => commitAction("edit")}
+                className="h-9 px-4 rounded-[8px] bg-[#0B0F12] hover:bg-[#1f2328] text-white text-[12.5px] font-medium cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+              >
+                {isSubmitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>Save & Approve Edit</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={isSubmitting || reviewStatus === "approved" || reviewStatus === "rejected"}
+                  onClick={() => commitAction("approve")}
+                  title={reviewStatus === "rejected" ? "Rejected proposals cannot be approved" : "Approve proposed correction"}
+                  className="h-9 px-4 rounded-[8px] bg-[#0B0F12] hover:bg-[#1f2328] text-white text-[12.5px] font-medium cursor-pointer disabled:opacity-45 inline-flex items-center gap-1.5"
+                >
+                  {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Approve</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSubmitting || !canEditFields}
+                  onClick={() => setIsEditing(true)}
+                  title={!canEditFields ? "This repair type has no permitted automated edit fields (human authoring only)" : "Edit permitted field"}
+                  className="h-9 px-3.5 rounded-[8px] bg-white hover:bg-[#FAF9F5] border border-[#C5C1B4] text-[#111111] text-[12.5px] font-medium cursor-pointer disabled:opacity-45 inline-flex items-center gap-1.5"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit Correction</span>
+                </button>
+              </>
+            )}
+
+            <button
+              type="button"
+              disabled={isSubmitting || reviewStatus === "rejected"}
+              onClick={() => commitAction("reject")}
+              className="h-9 px-3.5 rounded-[8px] bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[#B91C1C] text-[12.5px] font-medium cursor-pointer disabled:opacity-45 inline-flex items-center gap-1.5"
             >
-              Save Patch
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <X className="w-3.5 h-3.5" />
+              <span>Reject</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting || reviewStatus === "no_change"}
+              onClick={() => commitAction("no_change")}
+              className="h-9 px-3.5 rounded-[8px] bg-[#F9F8F3] hover:bg-[#EFECE6] border border-[#DFDBD0] text-[#111111] text-[12.5px] font-medium cursor-pointer disabled:opacity-45 inline-flex items-center gap-1.5"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>No Change</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isSubmitting || reviewStatus === "deferred"}
+              onClick={() => commitAction("defer")}
+              className="h-9 px-3.5 rounded-[8px] bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[#B45309] text-[12.5px] font-medium cursor-pointer disabled:opacity-45 inline-flex items-center gap-1.5"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Escalate</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Collapsible Case Audit Trail */}
+        <div className="pt-2 border-t border-[#F0EEE6]">
+          <button
+            type="button"
+            onClick={() => setAuditExpanded((v) => !v)}
+            className="text-[11.5px] font-mono text-[#666666] hover:text-[#111111] inline-flex items-center gap-1.5 cursor-pointer"
+          >
+            <HistoryIcon className="w-3.5 h-3.5" />
+            <span>Audit History for Question ({auditHistory.length})</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${auditExpanded ? "rotate-180" : ""}`} />
+          </button>
+
+          {auditExpanded && (
+            <div className="mt-2.5 space-y-1.5">
+              {auditHistory.length === 0 ? (
+                <p className="text-[12px] text-[#777777]">No audit actions recorded for this question yet.</p>
+              ) : (
+                auditHistory.map((log: any) => (
+                  <div
+                    key={log.id}
+                    className="p-2.5 rounded-[8px] bg-[#F9F8F3] border border-[#E5E2D9] text-[12px] flex flex-wrap items-center justify-between gap-2"
+                  >
+                    <div>
+                      <span className="font-mono font-semibold text-[#111111] uppercase">{log.action}</span>
+                      <span className="text-[#555555]"> by {log.faculty_name} — {log.notes}</span>
+                    </div>
+                    <span className="font-mono text-[11px] text-[#777777]">{formatDateTime(log.created_at)}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
