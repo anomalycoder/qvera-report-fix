@@ -59,16 +59,15 @@ class BenchmarkRunner:
         }
 
         if write_to_disk:
-            # Write benchmark results.json
-            target_path = settings.DATA_DIR.parent / "results.json"
-            # Format results.json as list of report objects for standard compliance
+            import os
+            # Write benchmark results.json (fallback cleanly to /tmp on read-only serverless FS)
+            target_path = Path("/tmp/results.json") if os.environ.get("VERCEL") else (settings.DATA_DIR.parent / "results.json")
             results_payload = [r.model_dump() for r in results]
             with open(target_path, "w", encoding="utf-8") as f:
                 json.dump(results_payload, f, indent=2, ensure_ascii=False)
 
-            # Also write to acadza-report-fix/results.json if folder exists
             sub_path = settings.DATA_DIR.parent / "acadza-report-fix" / "results.json"
-            if sub_path.parent.exists():
+            if not os.environ.get("VERCEL") and sub_path.parent.exists():
                 with open(sub_path, "w", encoding="utf-8") as f:
                     json.dump(results_payload, f, indent=2, ensure_ascii=False)
 

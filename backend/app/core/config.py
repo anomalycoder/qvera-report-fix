@@ -1,7 +1,14 @@
+import os
 from pathlib import Path
 from typing import List, Union
 from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _default_sqlite_path() -> Path:
+    if os.environ.get("VERCEL"):
+        return Path("/tmp/acadza.db")
+    return Path(__file__).resolve().parent.parent.parent / "acadza.db"
 
 
 class Settings(BaseSettings):
@@ -13,7 +20,7 @@ class Settings(BaseSettings):
 
     # SQLite
     DATABASE_URL: str = "sqlite:///./acadza.db"
-    SQLITE_DB_PATH: Path = Path(__file__).resolve().parent.parent.parent / "acadza.db"
+    SQLITE_DB_PATH: Path = _default_sqlite_path()
 
     # Data directory location (supports running from root or backend folder)
     DATA_DIR: Path = Path(__file__).resolve().parent.parent.parent.parent / "data"
@@ -55,6 +62,7 @@ class Settings(BaseSettings):
         candidates = [
             self.DATA_DIR,
             Path(__file__).resolve().parent.parent.parent / "data",
+            Path("/var/task/data"),
             Path.cwd() / "data",
             Path.cwd().parent / "data",
             Path.cwd() / "acadza-report-fix" / "data",

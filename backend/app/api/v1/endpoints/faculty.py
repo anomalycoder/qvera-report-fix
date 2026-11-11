@@ -1,7 +1,9 @@
 import asyncio
 import json
+import os
 import re
 import threading
+import time
 from typing import Annotated, Any, Dict, List, Optional, Set, Tuple
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
@@ -1593,6 +1595,8 @@ async def stream_faculty_notifications(request: Request) -> StreamingResponse:
     async def event_generator():
         last_max_id, last_unread, last_pending, last_audit_id, _ = _read_db_snapshot()
         idle_ticks = 0
+        started_at = time.monotonic()
+        is_vercel = bool(os.environ.get("VERCEL"))
         try:
             initial_payload = json.dumps({
                 "type": "connected",
@@ -1602,6 +1606,9 @@ async def stream_faculty_notifications(request: Request) -> StreamingResponse:
             yield f"retry: 3000\nevent: state\ndata: {initial_payload}\n\n"
 
             while not await request.is_disconnected():
+                if is_vercel and (time.monotonic() - started_at) >= 6.0:
+                    yield ": reconnect\n\n"
+                    break
                 try:
                     event = await asyncio.wait_for(queue.get(), timeout=1.5)
                     idle_ticks = 0
