@@ -8,9 +8,9 @@ An academic quality assurance, verification, and faculty governance platform for
 
 | Artifact | Status / URL |
 |---|---|
-| **Public GitHub Repository** | Pending manual `git remote` push (see Section 15 / Submission checklist) |
-| **Live Faculty Console** | Pending Vercel / Render user authentication & deployment (local servers verified at `http://localhost:5173/` & `http://127.0.0.1:8000`) |
-| **Walkthrough Video (3 min)** | Pending screen recording (script available in [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md)) |
+| **Public GitHub Repository** | [`https://github.com/anomalycoder/qvera-report-fix`](https://github.com/anomalycoder/qvera-report-fix) |
+| **Live Faculty Console** | [`https://acadza-six.vercel.app`](https://acadza-six.vercel.app) (`/login` · `/dashboard`) |
+| **Walkthrough Video (3 min)** | Script ready in [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md) |
 | **Benchmark Output** | [`results.json`](results.json) — **44 / 44 reports validated** (`0` schema or safety errors) |
 
 ---
@@ -162,13 +162,12 @@ npm --prefix frontend run build
 
 ## Production Deployment
 
-Because the architecture pairs a static **React 19 / Vite SPA** (`frontend/`) with a **FastAPI + SymPy + SQLite WAL backend** (`backend/`):
-1. **Deploy Backend (`backend/` → Render / Railway / Fly.io):**
-   - Blueprint provided in [`render.yaml`](render.yaml) (`uvicorn main:app --host 0.0.0.0 --port $PORT`).
-   - Set `ENV=production`, `CORS_ALLOW_ORIGIN_REGEX=^https://.*\.vercel\.app$` (or exact `BACKEND_CORS_ORIGINS`), and mount persistent disk storage if preserving SQLite across container restarts.
-2. **Deploy Frontend (`frontend/` → Vercel):**
-   - Root configuration [`vercel.json`](vercel.json) and [`frontend/vercel.json`](frontend/vercel.json) handle SPA routing rewrites and Vite bundling (`frontend/dist`).
-   - Set Vercel Environment Variable `VITE_API_BASE_URL` to your deployed backend URL (e.g., `https://qvera-report-fix-api.onrender.com`, no trailing slash). [`installApiBaseInterceptor`](frontend/src/lib/apiBase.ts) automatically rewrites `/api/*` `fetch` and `EventSource` requests and attaches `Authorization: Bearer` tokens cleanly across origins.
+The production deployment at [`https://acadza-six.vercel.app`](https://acadza-six.vercel.app) serves both the **React 19 / Vite SPA** (`frontend/dist`) and the **FastAPI + SymPy + SQLite backend** via Vercel Python Serverless Functions ([`api/index.py`](api/index.py) + [`vercel.json`](vercel.json)):
+1. **Single-Origin Vercel Deployment (Active):**
+   - [`vercel.json`](vercel.json) rewrites `/api/(.*)` to [`api/index.py`](api/index.py) (bundling `backend/**` and `data/**` with root [`requirements.txt`](requirements.txt)) and falls back all SPA client routes to `index.html`.
+   - When `VERCEL` is set, [`backend/app/core/config.py`](backend/app/core/config.py) stores runtime SQLite state in writable `/tmp/acadza.db` cleanly, and SSE notification streams yield gracefully within serverless execution limits (`retry: 3000` automatic reconnect + 20s polling fallback).
+2. **Optional Dedicated Persistent Backend (`backend/` → Render / Railway):**
+   - For persistent disk SQLite across restarts and zero-timeout persistent SSE streams, [`render.yaml`](render.yaml) (`uvicorn main:app --host 0.0.0.0 --port $PORT`) and [`backend/Procfile`](backend/Procfile) are included. Set `VITE_API_BASE_URL` to route [`frontend/src/lib/apiBase.ts`](frontend/src/lib/apiBase.ts) cross-origin automatically.
 
 ---
 
