@@ -202,7 +202,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           SECTION 05: INSTITUTIONAL FOOTER (MATCHING SEAMLESS CANVAS)
       ========================================================================= */}
       <footer className="w-full bg-[#F9F8F3] border-t border-[#E2DFD6] pt-14 pb-12 select-none">
-        <div className="max-w-[1320px] mx-auto px-6 sm:px-10 lg:px-14">
+        <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-[74px]">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-[#EAE6DD]">
             {/* Column 1: Brand & Description (5 cols) */}
             <div className="md:col-span-5 space-y-4 text-left">

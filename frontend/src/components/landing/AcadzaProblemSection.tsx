@@ -36,7 +36,7 @@ export const AcadzaProblemSection: React.FC = () => {
       id="problem-section"
       className="w-full bg-[#F9F8F3] pt-8 sm:pt-10 lg:pt-14 pb-14 sm:pb-16 lg:pb-18 border-b border-[#E2DFD6] select-none"
     >
-      <div className="max-w-[1320px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-14 w-full">
+      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-[74px] w-full">
         {/* =========================================================================
             SECTION HEADER: ACADZA SOLUTION CAPABILITIES
         ========================================================================= */}

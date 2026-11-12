@@ -13,11 +13,11 @@ export const AcadzaSmallCTASection: React.FC<AcadzaSmallCTASectionProps> = ({
 }) => {
   return (
     <section className="w-full bg-[#F9F8F3] min-h-[35vh] py-8 sm:py-10 lg:py-12 flex items-center justify-center select-none">
-      <div className="max-w-[1320px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-14 w-full">
+      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-[74px] w-full">
         {/* =========================================================================
             CTA CARD: TEXTURED BACKGROUND WITH LUMINOUS ARCS & HERO-STYLE BUTTON
         ========================================================================= */}
-        <div className="max-w-[1080px] mx-auto rounded-[20px] sm:rounded-[24px] border border-[#2B3544] p-7 sm:p-10 lg:p-12 shadow-sm relative overflow-hidden">
+        <div className="w-full rounded-[20px] sm:rounded-[24px] border border-[#2B3544] p-7 sm:p-10 lg:p-12 shadow-sm relative overflow-hidden">
           {/* Background Texture Image */}
           <img
             src="/cta-texture-bg.jpg"

@@ -14,7 +14,7 @@ export const CompleteWorkspaceSection: React.FC<CompleteWorkspaceSectionProps> =
       id="workspace-features-section" 
       className="w-full bg-[#F9F8F3] pt-6 sm:pt-8 lg:pt-10 pb-12 sm:pb-14 lg:pb-18 select-none border-b border-[#E2DFD6]"
     >
-      <div className="max-w-[1320px] mx-auto px-5 sm:px-8 lg:px-12 xl:px-14 w-full">
+      <div className="max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 xl:px-[74px] w-full">
         {/* =========================================================================
             HEADER: CENTERED AT TOP, NO BUTTON, MINIMAL TEXT
         ========================================================================= */}
